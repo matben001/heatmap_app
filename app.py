@@ -10,6 +10,8 @@ from dash.dependencies import Input, Output
 
 # Initialize the Dash app
 app = dash.Dash(__name__)
+server = app.server
+
 
 # Load the data from CSV
 data = pd.read_csv("TEMP_2024-11-06_18-43-03.csv")
@@ -249,4 +251,4 @@ def update_graph(time_index, z_max, module_range, opacity):
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=10000)
