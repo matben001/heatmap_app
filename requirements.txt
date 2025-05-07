@@ -5,3 +5,4 @@ scipy
 tk
 dash
 plotly
+gunicorn
