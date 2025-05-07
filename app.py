@@ -12,7 +12,7 @@ from dash.dependencies import Input, Output
 app = dash.Dash(__name__)
 
 # Load the data from CSV
-data = pd.read_csv("data_temp/TEMP_2024-11-06_18-43-03.csv")
+data = pd.read_csv("TEMP_2024-11-06_18-43-03.csv")
 
 # 1 module of battery has 8 cells by 16, so 128 cells per module
 # 1 battery has 6 modules, so 768 cells per battery 
