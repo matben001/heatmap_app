@@ -6,3 +6,4 @@ tk
 dash
 plotly
 gunicorn
+trimesh
