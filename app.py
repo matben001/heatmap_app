@@ -85,7 +85,7 @@ def create_interpolation_grid(x_val, points_y, points_z, temp_values):
 
 # Define the app layout
 app.layout = html.Div([
-    html.H1("4D Battery Temperature Visualization FPM25", style={'textAlign': 'center'}),
+    html.H1("5D Battery Temperature Visualization FPM25", style={'textAlign': 'center'}),
     
     html.Div([
         html.Div([
