@@ -7,13 +7,29 @@ from scipy.interpolate import griddata
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
-
+import trimesh
 # Initialize the Dash app
 app = dash.Dash(__name__)
 server = app.server
 
 # Load the data from CSV
 data = pd.read_csv("data/endurance.csv")
+battery_mesh = trimesh.load_mesh("stl/cassing.stl")
+#rotate -90 deg around z axis
+battery_mesh.apply_transform(trimesh.transformations.rotation_matrix(np.radians(-90), [0, 0, 1]))
+scale_factor = 0.033  # Adjust as needed to fit your unit scale
+battery_mesh.apply_scale(scale_factor)
+
+# Optional translation to align with your sensor grid
+# E.g., shift it to center around X=3, Y=10, Z=4
+translation_vector = [0, 18.5, 0]
+battery_mesh.apply_translation(translation_vector)
+vertices = battery_mesh.vertices
+faces = battery_mesh.faces
+mesh_x, mesh_y, mesh_z = vertices.T
+mesh_i, mesh_j, mesh_k = faces.T
+#print bounds
+print("Mesh bounds:", battery_mesh.bounds)
 
 # 1 module of battery has 8 cells by 16, so 128 cells per module
 # 1 battery has 6 modules, so 768 cells per battery 
@@ -21,7 +37,7 @@ data = pd.read_csv("data/endurance.csv")
 # They are arranged with 16 on one side of a battery and 16 on the other side
 
 # In short, 12 slices of 16 sensors with maximum 12*16 per battery
-# The coordinates will be within X[0,6](step 0.5), Y[0,16], Z[0,8] for a battery
+# The coordinates will be within X[0,15], Y[0,16], Z[0,8] for a battery (updated to 0-15 range)
 
 # Y,Z coordinates of sensors in a module (16 sensors)
 map_module = [(18.5, 5), (16, 2), (17, 7), (13.5, 1), (15, 7), (12, 2), (10, 2), (13, 7), 
@@ -44,7 +60,8 @@ x = []
 y = []
 z = []
 module_numbers = []
-x_convert = [1, 3, 5, 4, 2, 0]
+# Updated x_convert to map modules to 0-15 range with proper spacing
+x_convert = [2.5, 5.0, 7.5, 10.0, 12.5, 15.0]  # 6 modules spread across 0-15 range
 
 for idx, col_name in enumerate(temp_columns):
     # Column name is like "Module_4_Group6_Value1", so we can extract "Module", "Group" and "Value"
@@ -58,15 +75,15 @@ for idx, col_name in enumerate(temp_columns):
         temperatures[:, idx] = data[col_name].values
         continue
 
-    # Determine X coordinate for each module
+    # Determine X coordinate for each module (now in 0-15 range)
     x_coord = x_convert[module]
     if module == 0 or module == 1 or module == 2:
         if 8 >= sensor or sensor >= 25:
-            x_coord = x_coord + 0.5
+            x_coord = x_coord + 0.75  # Adjusted offset for 0-15 range
         y_coord, z_coord = map_module[33-sensor-1]
     else:
         if 8 < sensor and sensor < 25:
-            x_coord = x_coord + 0.5
+            x_coord = x_coord + 0.75  # Adjusted offset for 0-15 range
         y_coord, z_coord = map_module[sensor-1]
     
     x.append(x_coord)
@@ -100,18 +117,19 @@ def calculate_temp_stats():
 
 temp_stats_df = calculate_temp_stats()
 
-# Function to create interpolation grid
-def create_interpolation_grid(x_val, points_y, points_z, temp_values):
+# Function to create interpolation grid with added width
+def create_interpolation_grid(x_val, points_y, points_z, temp_values, width=1.5):
     y_min, y_max = min(points_y), max(points_y)
     z_min, z_max = min(points_z), max(points_z)
     
-    grid_y, grid_z = np.mgrid[y_min:y_max:25j, z_min:z_max:25j]
+    # Create finer grid for better resolution
+    grid_y, grid_z = np.mgrid[y_min:y_max:30j, z_min:z_max:30j]
     
     # Create points for interpolation
     points = np.column_stack((points_y, points_z))
     grid_temp = griddata(points, temp_values, (grid_y, grid_z), method='cubic')
     
-    return grid_y, grid_z, grid_temp
+    return grid_y, grid_z, grid_temp, width
 
 # Define the app layout
 app.layout = html.Div([
@@ -169,13 +187,13 @@ app.layout = html.Div([
             ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px'}),
 
             html.Div([
-                html.Label("📦 Module Range", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
+                html.Label("📦 Module Range (X: 0-15)", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
                 dcc.RangeSlider(
                     id='module-slider',
                     min=0,
-                    max=max([m for m in module_numbers if m >= 0]) + 0.5,
-                    value=[0, max([m for m in module_numbers if m >= 0]) + 0.5],
-                    marks={i: str(i) for i in range(0, max([m for m in module_numbers if m >= 0]) + 1)},
+                    max=16,
+                    value=[0, 16],
+                    marks={i: str(i) for i in range(0, 17, 2)},
                     step=0.5
                 ),
             ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px'}),
@@ -269,11 +287,22 @@ def update_3d_graph(time_index, z_max, module_range, opacity):
     
     valid_indices, valid_x, valid_y, valid_z = zip(*valid_coords)
     
-    # Filter points within the X range
-    mask_x = (np.array(valid_x) >= x_min) & (np.array(valid_x) <= x_max)
+    # Filter points within the X range - need to account for the width offset
+    # Since sensors can be offset by +/- 0.75, we need to include those in the range
+    mask_x = (np.array(valid_x) >= (x_min - 1.0)) & (np.array(valid_x) <= (x_max + 1.0))
     
-    # Get unique X coordinates in the range
-    unique_x = np.unique(np.array(valid_x)[mask_x])
+    # Get unique X coordinates in the range (group nearby X values)
+    filtered_x = np.array(valid_x)[mask_x]
+    if len(filtered_x) > 0:
+        # Group X coordinates that are close together (within 1.5 units)
+        unique_x = []
+        sorted_x = np.sort(np.unique(filtered_x))
+        for x_val in sorted_x:
+            if not unique_x or abs(x_val - unique_x[-1]) > 1.5:
+                unique_x.append(x_val)
+        unique_x = np.array(unique_x)
+    else:
+        unique_x = np.array([])
     
     # For temperature colorscale
     valid_temp_indices = [valid_indices[i] for i in range(len(valid_indices)) if mask_x[i]]
@@ -294,8 +323,10 @@ def update_3d_graph(time_index, z_max, module_range, opacity):
     
     # For each unique X coordinate (module position)
     for x_pos in unique_x:
-        # Create mask for this X position
-        position_mask = mask_x & (np.array(valid_x) == x_pos) & (np.array(valid_z) <= z_max)
+        # Create mask for this X position - include sensors within 1.0 unit of this position
+        position_mask = (mask_x & 
+                        (np.abs(np.array(valid_x) - x_pos) <= 1.0) & 
+                        (np.array(valid_z) <= z_max))
         
         if np.any(position_mask):
             # Get points for this slice
@@ -311,20 +342,23 @@ def update_3d_graph(time_index, z_max, module_range, opacity):
                 points_z = points_z[valid_temp_mask]
                 temps = temps[valid_temp_mask]
                 
-                # Create interpolation grid
+                # Create interpolation grid with width
                 if len(points_y) > 3:  # Need at least 4 points for interpolation
-                    grid_y, grid_z, grid_temp = create_interpolation_grid(x_pos, points_y, points_z, temps)
+                    grid_y, grid_z, grid_temp, width = create_interpolation_grid(x_pos, points_y, points_z, temps)
                     
                     # Remove NaN values (outside the convex hull of the input points)
                     mask_valid = ~np.isnan(grid_temp)
                     
                     if np.any(mask_valid):
-                        # Create a surface plot for this X position
-                        x_grid = np.full_like(grid_y, x_pos)
+                        # Create multiple surfaces with width (front and back faces)
+                        half_width = width / 2
+                        
+                        # Front surface
+                        x_grid_front = np.full_like(grid_y, x_pos - half_width)
                         z_grid_masked = np.where(mask_valid, grid_z, np.nan)
 
                         fig.add_trace(go.Surface(
-                            x=x_grid,
+                            x=x_grid_front,
                             y=grid_y,
                             z=z_grid_masked,
                             surfacecolor=grid_temp,
@@ -337,24 +371,43 @@ def update_3d_graph(time_index, z_max, module_range, opacity):
                                 title='Temperature (°C)',
                                 lenmode='fraction',
                                 len=0.75
-                            )
+                            ),
+                            name=f'Module {x_pos} Front'
+                        ))
+                        
+                        # Back surface
+                        x_grid_back = np.full_like(grid_y, x_pos + half_width)
+                        
+                        fig.add_trace(go.Surface(
+                            x=x_grid_back,
+                            y=grid_y,
+                            z=z_grid_masked,
+                            surfacecolor=grid_temp,
+                            colorscale='Jet',
+                            cmin=temp_min,
+                            cmax=temp_max,
+                            opacity=opacity,
+                            showscale=False,  # Only show colorbar once
+                            name=f'Module {x_pos} Back'
                         ))
                 
-                # Add scatter points for actual sensor positions
+                # Add scatter points for actual sensor positions with larger markers
                 fig.add_trace(go.Scatter3d(
                     x=[x_pos] * len(points_y),
                     y=points_y,
                     z=points_z,
                     mode='markers',
                     marker=dict(
-                        size=5,
+                        size=8,  # Increased marker size
                         color=temps,
                         colorscale='Jet',
                         cmin=temp_min,
                         cmax=temp_max,
-                        showscale=False
+                        showscale=False,
+                        line=dict(width=2, color='black')  # Add border to markers
                     ),
-                    showlegend=False
+                    showlegend=False,
+                    name=f'Sensors {x_pos}'
                 ))
     
     # Set the layout
@@ -364,14 +417,25 @@ def update_3d_graph(time_index, z_max, module_range, opacity):
         eye=dict(x=1.5, y=-1.5, z=1)
     )
     
+    # Add battery mesh
+    fig.add_trace(go.Mesh3d(
+        x=mesh_x, y=mesh_y, z=mesh_z,
+        i=mesh_i, j=mesh_j, k=mesh_k,
+        color='lightgray',
+        opacity=0.40,
+        name='Battery Case',
+        showscale=False
+    ))
+    
     fig.update_layout(
-        title=f'Battery Temperature at Time {time_index}',
+        title=f'Battery Temperature at Time {time_index} (X-axis: 0-15 range)',
         scene=dict(
-            xaxis_title='X-axis (Modules)',
+            xaxis_title='X-axis (0-15 range)',
             yaxis_title='Y-axis',
             zaxis_title='Z-axis',
             camera=camera,
-            aspectmode='data'
+            aspectmode='data',
+            xaxis=dict(range=[0, 16])  # Ensure X-axis shows 0-16 range
         ),
         margin=dict(l=0, r=0, b=0, t=40),
         height=600
