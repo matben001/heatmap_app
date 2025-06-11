@@ -133,7 +133,6 @@ def create_interpolation_grid(x_val, points_y, points_z, temp_values, width=1.5)
 
 # Define the app layout
 app.layout = html.Div([
-<<<<<<< HEAD
     # Header
     html.Div([
         html.H1("🔋 Battery Temperature Dashboard", 
@@ -161,10 +160,6 @@ app.layout = html.Div([
     }),
 
     # Control Panel Card
-=======
-    html.H1("4D Battery Temperature Visualization FPM25", style={'textAlign': 'center'}),
-    
->>>>>>> aad6f2531128e1be6f156536e287304c0850ae57
     html.Div([
         html.Div([
             html.Label("🕓 Time:", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
