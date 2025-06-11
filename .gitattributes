@@ -1,5 +1,4 @@
 *.csv filter=lfs diff=lfs merge=lfs -text
 *.stl filter=lfs diff=lfs merge=lfs -text
 data/endurance.csv filter=lfs diff=lfs merge=lfs -text
-stl/cassing.STL filter=lfs diff=lfs merge=lfs -text
 data/cassing.glb filter=lfs diff=lfs merge=lfs -text

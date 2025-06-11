@@ -14,10 +14,11 @@ server = app.server
 
 # Load the data from CSV
 data = pd.read_csv("data/endurance.csv")
-battery_mesh = trimesh.load_mesh("stl/cassing.stl")
+battery_mesh = trimesh.load_mesh("stl/cassing.glb")
+
 #rotate -90 deg around z axis
 battery_mesh.apply_transform(trimesh.transformations.rotation_matrix(np.radians(-90), [0, 0, 1]))
-scale_factor = 0.033  # Adjust as needed to fit your unit scale
+scale_factor = 0.032  # Adjust as needed to fit your unit scale
 battery_mesh.apply_scale(scale_factor)
 
 # Optional translation to align with your sensor grid
@@ -198,7 +199,16 @@ app.layout = html.Div([
                 ),
             ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px'}),
         ]),
-
+            html.Div([
+        html.Label("🧱 Show Battery Casing", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
+        dcc.Checklist(
+            id='toggle-casing',
+            options=[{'label': 'Show casing mesh', 'value': 'show'}],
+            value=['show'],
+            inputStyle={'marginRight': '8px', 'marginLeft': '12px'},
+            labelStyle={'display': 'inline-block', 'marginRight': '12px'}
+        )
+    ], style={'padding': '10px 0'}),
         html.Div([
             html.Label("🖌️ Surface Opacity", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
             dcc.Slider(
@@ -270,9 +280,10 @@ app.layout = html.Div([
     [Input('time-slider', 'value'),
      Input('z-slider', 'value'),
      Input('module-slider', 'value'),
-     Input('opacity-slider', 'value')]
+     Input('opacity-slider', 'value'),
+     Input('toggle-casing', 'value')]
 )
-def update_3d_graph(time_index, z_max, module_range, opacity):
+def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
     x_min, x_max = module_range
     
     # Create a new figure
@@ -418,14 +429,15 @@ def update_3d_graph(time_index, z_max, module_range, opacity):
     )
     
     # Add battery mesh
-    fig.add_trace(go.Mesh3d(
-        x=mesh_x, y=mesh_y, z=mesh_z,
-        i=mesh_i, j=mesh_j, k=mesh_k,
-        color='lightgray',
-        opacity=0.40,
-        name='Battery Case',
-        showscale=False
-    ))
+    if toggle_casing:
+        fig.add_trace(go.Mesh3d(
+            x=mesh_x, y=mesh_y, z=mesh_z,
+            i=mesh_i, j=mesh_j, k=mesh_k,
+            color='lightgray',
+            opacity=0.40,
+            name='Battery Case',
+            showscale=False
+        ))
     
     fig.update_layout(
         title=f'Battery Temperature at Time {time_index} (X-axis: 0-15 range)',
@@ -502,12 +514,12 @@ def update_temp_trends(current_time):
 )
 def update_power_graph(current_time):
     fig = go.Figure()
-    
+    print(data['DC BUS POWER'])
     # Add power data if available
     if 'DC BUS POWER' in data.columns:
         fig.add_trace(go.Scatter(
             x=data.index,
-            y=data['DC BUS POWER'],
+            y=data['D4 DC Bus Current'],
             mode='lines',
             name='DC Bus Power',
             line=dict(color='purple', width=2)
@@ -516,7 +528,7 @@ def update_power_graph(current_time):
     if 'DC BUS POWER SMOOTHED' in data.columns:
         fig.add_trace(go.Scatter(
             x=data.index,
-            y=data['DC BUS POWER SMOOTHED'],
+            y=data['Fan Speed'],
             mode='lines',
             name='DC Bus Power (Smoothed)',
             line=dict(color='magenta', width=2, dash='dot')
