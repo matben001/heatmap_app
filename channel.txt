@@ -1,0 +1,468 @@
+G Force Lat : 50 Hz, 81942 valeurs
+G Force Long : 50 Hz, 81942 valeurs
+G Force Vert : 50 Hz, 81942 valeurs
+Beacon (Internal) : 1 Hz, 1639 valeurs
+5V Aux Supply : 1 Hz, 1639 valeurs
+8V Aux Supply : 1 Hz, 1639 valeurs
+Brake Temp Front : 25 Hz, 40971 valeurs
+BR2 Valid Receptions : 1 Hz, 1639 valeurs
+BR2 Diag : 1 Hz, 1639 valeurs
+BR2 Beacon Number : 1 Hz, 1639 valeurs
+BR2 Beacon Count : 1 Hz, 1639 valeurs
+BR2 CAN Diag : 5 Hz, 8195 valeurs
+Dash Temp : 1 Hz, 1639 valeurs
+BMS ERR CELL TEMP MISSING : 50 Hz, 81942 valeurs
+BMS ERR CELL TEMP TOO LOW : 50 Hz, 81942 valeurs
+BMS ERR CELL TEMP TOO HIGH : 50 Hz, 81942 valeurs
+BMS ERR CELL VOLT MISSING : 50 Hz, 81942 valeurs
+BMS ERR CELL VOLT TIMEOUT : 50 Hz, 81942 valeurs
+BMS ERR CELL VOLT TOO LOW : 50 Hz, 81942 valeurs
+BMS ERR CELL VOLT TOO HIGH : 50 Hz, 81942 valeurs
+BMS ERR IMD FAULT : 50 Hz, 81942 valeurs
+BMS ERR AIR MINUS FEEDBACK : 50 Hz, 81942 valeurs
+BMS ERR AIR PLUS FEEDBACK : 50 Hz, 81942 valeurs
+BMS STATES AIR MINUS CLOSED : 100 Hz, 163883 valeurs
+BMS STATES AIR PLUS CLOSED : 100 Hz, 163883 valeurs
+BMS STATES INTERLOCK CLOSED : 50 Hz, 81942 valeurs
+BMS STATES FANS RUNNING : 2 Hz, 3278 valeurs
+TCS STATES READY TO DRIVE : 2 Hz, 3278 valeurs
+TCS STATES BUZZER ON : 1 Hz, 1639 valeurs
+BMS WARN CONTROL AIR PLUS : 50 Hz, 81942 valeurs
+BMS WARN CONTROL AIR MINUS : 50 Hz, 81942 valeurs
+BMS WARN CONTROL PRECH RELAY : 50 Hz, 81942 valeurs
+PEDALS ACCEL PERCENT : 100 Hz, 163883 valeurs
+PEDALS BRAKE PERCENT : 100 Hz, 163883 valeurs
+PEDALS ACCEL PERCENT VALID : 1 Hz, 1639 valeurs
+PEDALS BRAKE PERCENT VALID : 1 Hz, 1639 valeurs
+PEDALS IS BRAKING : 100 Hz, 163883 valeurs
+APPS RAW SENSOR1 : 100 Hz, 163883 valeurs
+APPS RAW SENSOR2 : 100 Hz, 163883 valeurs
+APPS RAW SENSOR3 : 100 Hz, 163883 valeurs
+APPS RAW SENSOR1 VALID : 1 Hz, 1639 valeurs
+APPS RAW SENSOR2 VALID : 1 Hz, 1639 valeurs
+APPS RAW SENSOR3 VALID : 1 Hz, 1639 valeurs
+APPS PERCENT SENSOR1 : 100 Hz, 163883 valeurs
+APPS PERCENT SENSOR2 : 100 Hz, 163883 valeurs
+APPS PERCENT SENSOR3 : 100 Hz, 163883 valeurs
+APPS PERCENT SENSOR1 VALID : 1 Hz, 1639 valeurs
+APPS PERCENT SENSOR2 VALID : 1 Hz, 1639 valeurs
+APPS PERCENT SENSOR3 VALID : 1 Hz, 1639 valeurs
+BRAKE RAW BACK : 100 Hz, 163883 valeurs
+BRAKE RAW BACK VALID : 1 Hz, 1639 valeurs
+BRAKE PERCENT BACK : 100 Hz, 163883 valeurs
+BRAKE PERCENT BACK VALID : 1 Hz, 1639 valeurs
+IMD STATE : 10 Hz, 16389 valeurs
+IMD INSULATION : 10 Hz, 16389 valeurs
+IMD INSULATION RESISTANCE : 100 Hz, 163883 valeurs
+BMS TEMPS PCB : 2 Hz, 3278 valeurs
+HV INFO VOLT : 100 Hz, 163883 valeurs
+HV INFO CURRENT 30A : 100 Hz, 163883 valeurs
+HV INFO CURRENT 350A : 100 Hz, 163883 valeurs
+LV INFO VOLT 28V : 25 Hz, 40971 valeurs
+LV INFO VOLT 24V : 25 Hz, 40971 valeurs
+WHEEL SPEEDS FRONT LEFT : 50 Hz, 81942 valeurs
+WHEEL SPEEDS FRONT RIGHT : 50 Hz, 81942 valeurs
+WHEEL SPEEDS BACK LEFT : 50 Hz, 81942 valeurs
+WHEEL SPEEDS BACK RIGHT : 50 Hz, 81942 valeurs
+D4 Iq Command : 50 Hz, 81942 valeurs
+D3 Id Command : 50 Hz, 81942 valeurs
+D2 Flux Weakening Output : 1 Hz, 1639 valeurs
+D1 Modulation Index : 1 Hz, 1639 valeurs
+D2 Torque Feedback : 100 Hz, 163883 valeurs
+D1 Commanded Torque : 100 Hz, 163883 valeurs
+D2 Write Success : 100 Hz, 163883 valeurs
+D3 Data Response : 100 Hz, 163883 valeurs
+D3 Data Command : 100 Hz, 163883 valeurs
+D2 Read Write Command : 100 Hz, 163883 valeurs
+Speed Command : 100 Hz, 163883 valeurs
+Torque Command : 100 Hz, 163883 valeurs
+Torque Limit Command : 1 Hz, 1639 valeurs
+D4 Run Fault Hi : 10 Hz, 16389 valeurs
+D2 Post Fault Hi : 10 Hz, 16389 valeurs
+D3 Run Fault Lo : 10 Hz, 16389 valeurs
+D1 Post Fault Lo : 10 Hz, 16389 valeurs
+D7 Direction Command : 10 Hz, 16389 valeurs
+D6 Inverter Enable State : 10 Hz, 16389 valeurs
+D5 Inverter Command Mode : 10 Hz, 16389 valeurs
+D2 Inverter State : 10 Hz, 16389 valeurs
+D6 Inverter Enable Lockout : 10 Hz, 16389 valeurs
+D2 Reference Voltage 2 5 : 10 Hz, 16389 valeurs
+D4 Iq : 100 Hz, 163883 valeurs
+D3 Id : 100 Hz, 163883 valeurs
+D2 Flux Feedback : 100 Hz, 163883 valeurs
+D1 Flux Command : 100 Hz, 163883 valeurs
+D4 VBC Vq Voltage : 100 Hz, 163883 valeurs
+D3 VAB Vd Voltage : 100 Hz, 163883 valeurs
+D2 Output Voltage : 100 Hz, 163883 valeurs
+D1 DC Bus Voltage : 100 Hz, 163883 valeurs
+D4 DC Bus Current : 100 Hz, 163883 valeurs
+D3 Phase C Current : 10 Hz, 16389 valeurs
+D2 Phase B Current : 10 Hz, 16389 valeurs
+D1 Phase A Current : 10 Hz, 16389 valeurs
+D4 Delta Resolver Filtered : 100 Hz, 163883 valeurs
+D3 Electrical Out Frequency : 100 Hz, 163883 valeurs
+D2 Motor Speed : 100 Hz, 163883 valeurs
+D1 Motor Angle Electrical : 100 Hz, 163883 valeurs
+D4 Torque Shudder : 10 Hz, 16389 valeurs
+D3 Motor Temperature : 10 Hz, 16389 valeurs
+D2 RTD5 Temperature : 10 Hz, 16389 valeurs
+D2 RTD1 Temperature : 10 Hz, 16389 valeurs
+D1 Control Board Temperature : 2 Hz, 3278 valeurs
+D4 Gate Driver Board : 10 Hz, 16389 valeurs
+D3 Module C : 5 Hz, 8195 valeurs
+D2 Module B : 5 Hz, 8195 valeurs
+D1 Module A : 5 Hz, 8195 valeurs
+D2 SW Version : 1 Hz, 1639 valeurs
+D3 DateCode MMDD : 1 Hz, 1639 valeurs
+D3 Diag Data 1 : 1 Hz, 1639 valeurs
+D1 ID Byte : 1 Hz, 1639 valeurs
+D2 Setpoint Calc : 1 Hz, 1639 valeurs
+D1 HV In Current Sensor Valid : 1 Hz, 1639 valeurs
+D3 HV Input Current : 1 Hz, 1639 valeurs
+D2 Max Charge Current : 1 Hz, 1639 valeurs
+IMU ACCEL X : 500 Hz, 819415 valeurs
+IMU ACCEL Y : 500 Hz, 819415 valeurs
+IMU ACCEL Z : 500 Hz, 819415 valeurs
+IMU GYRO X : 50 Hz, 81942 valeurs
+IMU GYRO Y : 50 Hz, 81942 valeurs
+IMU GYRO Z : 50 Hz, 81942 valeurs
+IMU MISC TEMP : 1 Hz, 1639 valeurs
+Current : 10 Hz, 16389 valeurs
+Voltage : 10 Hz, 16389 valeurs
+OverVoltage : 25 Hz, 40971 valeurs
+OverPower : 25 Hz, 40971 valeurs
+Lap Time : 1 Hz, 1639 valeurs
+Running Lap Time : 10 Hz, 16389 valeurs
+Lap Speed : 1 Hz, 1639 valeurs
+GPS Sats Used : 2 Hz, 3278 valeurs
+GPS Altitude : 50 Hz, 81942 valeurs
+GPS Time : 2 Hz, 3278 valeurs
+GPS Date : 20 Hz, 32777 valeurs
+GPS HDOP : 50 Hz, 81942 valeurs
+Fastest Lap Time : 1 Hz, 1639 valeurs
+GPS Valid : 1 Hz, 1639 valeurs
+Lap Marker 1 : 5 Hz, 8195 valeurs
+Susp Pos RL : 500 Hz, 819415 valeurs
+Susp Pos RR : 500 Hz, 819415 valeurs
+Susp Pos FL : 500 Hz, 819415 valeurs
+Susp Pos FR : 500 Hz, 819415 valeurs
+GPS Latitude : 50 Hz, 81942 valeurs
+GPS Longitude : 50 Hz, 81942 valeurs
+GPS Heading : 50 Hz, 81942 valeurs
+GPS Speed : 50 Hz, 81942 valeurs
+CAN 1 Receive Error Count : 1 Hz, 1639 valeurs
+CAN 1 Transmit Error Count : 1 Hz, 1639 valeurs
+GPS Quality : 2 Hz, 3278 valeurs
+CAN 2 Receive Error Count : 1 Hz, 1639 valeurs
+CAN 2 Transmit Error Count : 1 Hz, 1639 valeurs
+CAN 1 Bus Utilization : 1 Hz, 1639 valeurs
+CAN 2 Bus Utilization : 1 Hz, 1639 valeurs
+IMU MISC GYRO : 1 Hz, 1639 valeurs
+IMU MISC PWR MGMT : 1 Hz, 1639 valeurs
+Ground Speed : 20 Hz, 32777 valeurs
+Drive Speed : 20 Hz, 32777 valeurs
+Wheel Slip (Percent) : 50 Hz, 81942 valeurs
+Steering Angle : 25 Hz, 40971 valeurs
+VOLT_MODULE1_CELL1 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL7 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL4 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL2 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL8 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL1 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL3 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL9 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL4 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL10 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL5 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL11 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL6 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL12 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL1 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL7 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL2 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL8 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL3 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL9 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL10 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL5 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL11 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL6 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL12 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL7 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL2 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL8 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL3 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL9 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL4 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL5 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL6 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL10 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL11 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL12 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL1 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL2 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL3 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL4 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL5 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL6 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL7 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL8 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL9 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL10 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL11 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL12 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL1 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL2 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL3 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL4 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL5 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL6 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL7 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL8 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL9 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL10 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL11 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL12 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL1 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL2 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL3 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL4 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL5 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL6 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL7 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL8 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL9 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL10 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL11 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL12 : 10 Hz, 16389 valeurs
+DRS INFO STATE : 2 Hz, 3278 valeurs
+BMS LV INFO VOLTAGE : 2 Hz, 3278 valeurs
+TCS REGEN STATE : 5 Hz, 8195 valeurs
+TCS REGEN MAXIMUM TORQUE : 1 Hz, 1639 valeurs
+TCS REGEN REQUESTED TORQUE : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL13 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL14 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL15 : 10 Hz, 16389 valeurs
+VOLT_MODULE1_CELL16 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL13 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL14 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL15 : 10 Hz, 16389 valeurs
+VOLT_MODULE2_CELL16 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL13 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL14 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL15 : 10 Hz, 16389 valeurs
+VOLT_MODULE3_CELL16 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL13 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL14 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL15 : 10 Hz, 16389 valeurs
+VOLT_MODULE4_CELL16 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL13 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL14 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL15 : 10 Hz, 16389 valeurs
+VOLT_MODULE5_CELL16 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL13 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL14 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL15 : 10 Hz, 16389 valeurs
+VOLT_MODULE6_CELL16 : 10 Hz, 16389 valeurs
+TCS TRACTION CONTROL OUTPUT : 1 Hz, 1639 valeurs
+TCS TRACTION CONTROL INTEGRAL : 1 Hz, 1639 valeurs
+TCS TRACTION CONTROL ERROR : 1 Hz, 1639 valeurs
+DEBUG INFO COMMIT HASH : 1 Hz, 1639 valeurs
+DEBUG INFO TCS MODE : 1 Hz, 1639 valeurs
+DEBUG INFO MU : 1 Hz, 1639 valeurs
+DEBUG INFO TARGET SLIP : 1 Hz, 1639 valeurs
+RateOfTurn gyrX : 1 Hz, 1639 valeurs
+RateOfTurn gyrY : 1 Hz, 1639 valeurs
+RateOfTurn gyrZ : 1 Hz, 1639 valeurs
+Acceleration accX : 1 Hz, 1639 valeurs
+Acceleration accY : 1 Hz, 1639 valeurs
+Acceleration accZ : 1 Hz, 1639 valeurs
+EulerAngles roll : 1 Hz, 1639 valeurs
+EulerAngles pitch : 1 Hz, 1639 valeurs
+EulerAngles yaw : 1 Hz, 1639 valeurs
+LatLon latitude : 1 Hz, 1639 valeurs
+LatLon longitude : 1 Hz, 1639 valeurs
+LAP ENDED : 20 Hz, 32777 valeurs
+KF VELOCITY OUTPUT : 100 Hz, 163883 valeurs
+Lap Distance : 1 Hz, 1639 valeurs
+ENERGY STRATEGY MODE ACTIVE : 2 Hz, 3278 valeurs
+CALCULATED EFFICIENCIES DRIVE : 1 Hz, 1639 valeurs
+CALCULATED EFFICIENCIES MOTOR : 1 Hz, 1639 valeurs
+TCS STATES BRAKE LIGHT ON : 2 Hz, 3278 valeurs
+TCS STATES CURRENT STATE : 50 Hz, 81942 valeurs
+EXTRM TEMPS MIN : 10 Hz, 16389 valeurs
+EXTRM TEMPS MAX : 10 Hz, 16389 valeurs
+EXTRM TEMPS MEAN : 10 Hz, 16389 valeurs
+EXTRM TEMPS MIN MODULE : 10 Hz, 16389 valeurs
+EXTRM TEMPS MIN GROUP : 10 Hz, 16389 valeurs
+EXTRM TEMPS MAX MODULE : 10 Hz, 16389 valeurs
+EXTRM TEMPS MAX GROUP : 10 Hz, 16389 valeurs
+EXTRM VOLTS MIN : 100 Hz, 163883 valeurs
+EXTRM VOLTS MAX : 100 Hz, 163883 valeurs
+EXTRM VOLTS MIN MODULE : 100 Hz, 163883 valeurs
+EXTRM VOLTS MIN GROUP : 100 Hz, 163883 valeurs
+EXTRM VOLTS MAX MODULE : 100 Hz, 163883 valeurs
+EXTRM VOLTS MAX GROUP : 100 Hz, 163883 valeurs
+BMS STATES DRIVE PLUGGED : 1 Hz, 1639 valeurs
+BMS LV INFO ESTIMATED SOC : 2 Hz, 3278 valeurs
+VCU CURRENT TIMESTAMP : 10 Hz, 16389 valeurs
+Brake Bias Setting : 2 Hz, 3278 valeurs
+Brake Pressure Rear : 50 Hz, 81942 valeurs
+ENERGY USED : 5 Hz, 8195 valeurs
+SLAVE 1 PEC ERRORS : 1 Hz, 1639 valeurs
+SLAVE 2 PEC ERRORS : 1 Hz, 1639 valeurs
+SLAVE 3 PEC ERRORS : 1 Hz, 1639 valeurs
+SLAVE 4 PEC ERRORS : 1 Hz, 1639 valeurs
+SLAVE 5 PEC ERRORS : 1 Hz, 1639 valeurs
+SLAVE 6 PEC ERRORS : 1 Hz, 1639 valeurs
+SLAVE 1 MAX TIME : 1 Hz, 1639 valeurs
+SLAVE 2 MAX TIME : 1 Hz, 1639 valeurs
+SLAVE 3 MAX TIME : 1 Hz, 1639 valeurs
+SLAVE 4 MAX TIME : 1 Hz, 1639 valeurs
+SLAVE 5 MAX TIME : 1 Hz, 1639 valeurs
+SLAVE 6 MAX TIME : 1 Hz, 1639 valeurs
+VOLT_OW_MODULE1_CELL1 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL2 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL3 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL4 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL5 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL6 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL7 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL8 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL9 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL10 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL11 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL12 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL13 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL14 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL15 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE1_CELL16 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL1 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL2 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL3 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL4 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL5 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL6 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL7 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL8 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL9 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL10 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL11 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL12 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL13 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL14 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL15 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE2_CELL16 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL1 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL2 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL3 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL4 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL5 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL6 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL7 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL8 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL9 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL10 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL12 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL11 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL13 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL14 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL15 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE3_CELL16 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL1 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL2 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL3 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL4 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL5 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL6 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL7 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL8 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL9 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL10 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL11 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL12 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL13 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL14 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL15 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE4_CELL16 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL1 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL2 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL3 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL4 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL5 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL6 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL7 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL8 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL9 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL10 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL11 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL12 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL13 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL14 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL15 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE5_CELL16 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL1 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL2 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL3 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL4 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL5 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL6 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL7 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL8 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL9 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL10 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL11 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL12 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL13 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL14 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL15 : 10 Hz, 16389 valeurs
+VOLT_OW_MODULE6_CELL16 : 10 Hz, 16389 valeurs
+TEMPS MODULE : 500 Hz, 819415 valeurs
+TEMPS GROUP : 500 Hz, 819415 valeurs
+TEMPS VALUE1 : 500 Hz, 819415 valeurs
+TEMPS VALUE2 : 500 Hz, 819415 valeurs
+LF Tire Temp 04 : 20 Hz, 32777 valeurs
+LF Tire Temp 03 : 20 Hz, 32777 valeurs
+LF Tire Temp 02 : 20 Hz, 32777 valeurs
+LF Tire Temp 01 : 20 Hz, 32777 valeurs
+RF Tire Temp 04 : 20 Hz, 32777 valeurs
+RF Tire Temp 03 : 20 Hz, 32777 valeurs
+RF Tire Temp 02 : 20 Hz, 32777 valeurs
+RF Tire Temp 01 : 20 Hz, 32777 valeurs
+Brake Pressure Front : 10 Hz, 16389 valeurs
+TCS STATES BSPD FAULTING : 1 Hz, 1639 valeurs
+FL kPa 1 : 1 Hz, 1639 valeurs
+FR kPa 2 : 1 Hz, 1639 valeurs
+RL kPa 3 : 1 Hz, 1639 valeurs
+RR kPa 4 : 1 Hz, 1639 valeurs
+SOC PERCENT : 1 Hz, 1639 valeurs
+SOC EFFICIENCY : 1 Hz, 1639 valeurs
+SOC MAX POWER : 1 Hz, 1639 valeurs
+SOC RANGE : 1 Hz, 1639 valeurs
+Speed Mode Enable : 1 Hz, 1639 valeurs
+DRS INFO BUTTON PRESSED : 2 Hz, 3278 valeurs
+DRS OPEN : 2 Hz, 3278 valeurs
+LV ERR CELL TEMP MISSING : 10 Hz, 16389 valeurs
+LV ERR CELL TEMP TOO LOW : 10 Hz, 16389 valeurs
+LV ERR CELL TEMP TOO HIGH : 10 Hz, 16389 valeurs
+LV ERR CELL VOLT MISSING : 10 Hz, 16389 valeurs
+LV ERR CELL VOLT TIMEOUT : 10 Hz, 16389 valeurs
+LV ERR CELL VOLT TOO LOW : 10 Hz, 16389 valeurs
+LV ERR CELL VOLT TOO HIGH : 10 Hz, 16389 valeurs
+BMS LV STATES RELAY CLOSED : 10 Hz, 16389 valeurs
+BMS STATES GREEN TSAL ON : 5 Hz, 8195 valeurs
+TCS STATES RTD BUTTON PRESSED : 1 Hz, 1639 valeurs
+BMS ERR CELL VOLT DISCONNECT : 50 Hz, 81942 valeurs
+BMS ERR ISOSPI DISCONNECTED : 50 Hz, 81942 valeurs
+BMS ERR CURRENT TIMEOUT : 50 Hz, 81942 valeurs
+BMS ERR OVERCURRENT : 50 Hz, 81942 valeurs
+BP VOLT STAGE 5 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 6 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 7 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 8 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 9 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 0 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 1 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 2 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 3 : 2 Hz, 3278 valeurs
+BP VOLT STAGE 4 : 2 Hz, 3278 valeurs

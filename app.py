@@ -7,6 +7,8 @@ from scipy.interpolate import griddata
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
+from scipy.signal import savgol_filter
+
 import trimesh
 # Initialize the Dash app
 app = dash.Dash(__name__)
@@ -14,6 +16,10 @@ server = app.server
 
 # Load the data from CSV
 data = pd.read_csv("data/endurance.csv")
+#compute power from voltage and current colums: D4 DC Bus Current,D4 DC Bus Voltage
+if 'D4 DC Bus Current' in data.columns and 'D1 DC Bus Voltage' in data.columns:
+    data['POWER'] = data['D4 DC Bus Current'] * data['D1 DC Bus Voltage']
+
 battery_mesh = trimesh.load_mesh("stl/cassing.glb")
 
 #rotate -90 deg around z axis
@@ -29,8 +35,7 @@ vertices = battery_mesh.vertices
 faces = battery_mesh.faces
 mesh_x, mesh_y, mesh_z = vertices.T
 mesh_i, mesh_j, mesh_k = faces.T
-#print bounds
-print("Mesh bounds:", battery_mesh.bounds)
+
 
 # 1 module of battery has 8 cells by 16, so 128 cells per module
 # 1 battery has 6 modules, so 768 cells per battery 
@@ -117,6 +122,17 @@ def calculate_temp_stats():
     return pd.DataFrame(temp_stats)
 
 temp_stats_df = calculate_temp_stats()
+# Calculate fan speed based on max temperature
+max_temp = temp_stats_df['max_temp']
+fan_speed = []
+for temp in max_temp:
+    if temp < 35:
+        fan_speed.append(0.0)
+    elif 35 <= temp < 50:
+        fan_speed.append((temp - 35) / 15 * 70.0)
+    else:
+        fan_speed.append(70.0)
+data['fan_speed'] = fan_speed
 
 # Function to create interpolation grid with added width
 def create_interpolation_grid(x_val, points_y, points_z, temp_values, width=1.5):
@@ -244,9 +260,21 @@ app.layout = html.Div([
     # Trend Graphs
     html.Div([
         html.Div([
+            html.Label("🔄 Temperature View Mode", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
+            dcc.RadioItems(
+                id='temp-view-toggle',
+                options=[
+                    {'label': 'Raw Temperature', 'value': 'raw'},
+                    {'label': 'Derivative (30s Smoothed)', 'value': 'deriv'}
+                ],
+                value='raw',
+                labelStyle={'display': 'inline-block', 'marginRight': '12px'}
+            )
+        ], style={'padding': '10px 0'}),
+        html.Div([
             dcc.Graph(id='temp-trends-graph')
         ], style={
-            'width': '50%',
+            'width': '100%',
             'padding': '10px',
             'display': 'inline-block',
             'verticalAlign': 'top'
@@ -255,11 +283,32 @@ app.layout = html.Div([
         html.Div([
             dcc.Graph(id='power-graph')
         ], style={
-            'width': '50%',
+            'width': '100%',
             'padding': '10px',
             'display': 'inline-block',
             'verticalAlign': 'top'
         }),
+        #add a toggle to change to smoother power graph
+        html.Div([
+            html.Label("🔄 Power View Mode", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
+            dcc.RadioItems(
+                id='power-view-toggle',
+                options=[
+                    {'label': 'Raw Power', 'value': 'raw'},
+                    {'label': 'Smoothed Power', 'value': 'smoothed'}
+                ],
+                value='raw',
+                labelStyle={'display': 'inline-block', 'marginRight': '12px'}
+            )
+        ], style={'padding': '10px 0'}),
+        html.Div([
+            dcc.Graph(id='fan-graph')
+        ], style={
+            'width': '100%',
+            'padding': '10px',
+            'display': 'inline-block',
+            'verticalAlign': 'top'
+        })
     ], style={
         'backgroundColor': 'white',
         'padding': '20px',
@@ -458,81 +507,150 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
 # Define callback to update temperature trends
 @app.callback(
     Output('temp-trends-graph', 'figure'),
-    [Input('time-slider', 'value')]
+    [Input('time-slider', 'value'),
+     Input('temp-view-toggle', 'value')]
 )
-def update_temp_trends(current_time):
+def update_temp_trends(current_time, view_mode):
     fig = go.Figure()
-    
-    # Add temperature trend lines
-    fig.add_trace(go.Scatter(
-        x=temp_stats_df['timestamp'],
-        y=temp_stats_df['max_temp'],
-        mode='lines',
-        name='Max Temperature',
-        line=dict(color='red', width=2)
-    ))
-    
-    fig.add_trace(go.Scatter(
-        x=temp_stats_df['timestamp'],
-        y=temp_stats_df['avg_temp'],
-        mode='lines',
-        name='Average Temperature',
-        line=dict(color='blue', width=2)
-    ))
-    
-    fig.add_trace(go.Scatter(
-        x=temp_stats_df['timestamp'],
-        y=temp_stats_df['min_temp'],
-        mode='lines',
-        name='Min Temperature',
-        line=dict(color='green', width=2)
-    ))
-    
-    # Add vertical line for current time
+
+    if view_mode == 'raw':
+        df = temp_stats_df
+        fig.add_trace(go.Scatter(
+            x=df['timestamp'], y=df['max_temp'], mode='lines', name='Max Temperature',
+            line=dict(color='red', width=2)
+        ))
+        fig.add_trace(go.Scatter(
+            x=df['timestamp'], y=df['avg_temp'], mode='lines', name='Average Temperature',
+            line=dict(color='blue', width=2)
+        ))
+        fig.add_trace(go.Scatter(
+            x=df['timestamp'], y=df['min_temp'], mode='lines', name='Min Temperature',
+            line=dict(color='green', width=2)
+        ))
+        y_title = 'Temperature (°C)'
+    else:
+        smoothed = temp_stats_df[['min_temp', 'avg_temp', 'max_temp']].apply(
+            lambda col: savgol_filter(col, window_length=5000, polyorder=2, mode='interp')
+        )
+        deriv = smoothed.diff().fillna(0)
+        deriv['timestamp'] = temp_stats_df['timestamp']
+
+        fig.add_trace(go.Scatter(
+            x=deriv['timestamp'], y=deriv['max_temp'], mode='lines', name='Max Temp Derivative',
+            line=dict(color='red', width=2)
+        ))
+        fig.add_trace(go.Scatter(
+            x=deriv['timestamp'], y=deriv['avg_temp'], mode='lines', name='Avg Temp Derivative',
+            line=dict(color='blue', width=2)
+        ))
+        fig.add_trace(go.Scatter(
+            x=deriv['timestamp'], y=deriv['min_temp'], mode='lines', name='Min Temp Derivative',
+            line=dict(color='green', width=2)
+        ))
+        y_title = 'Temperature Derivative (°C/s)'
+
     fig.add_vline(
         x=current_time,
         line_dash="dash",
         line_color="orange",
         annotation_text=f"Current Time: {current_time}"
     )
-    
+
     fig.update_layout(
         title='Temperature Trends Over Time',
         xaxis_title='Time Index',
-        yaxis_title='Temperature (°C)',
+        yaxis_title=y_title,
         legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
         height=400
     )
-    
+
     return fig
+
 
 # Define callback to update power graph
 @app.callback(
     Output('power-graph', 'figure'),
+    [Input('time-slider', 'value'),
+     Input('power-view-toggle', 'value')]
+)
+def update_power_graph(current_time, power_view_mode):
+    fig = go.Figure()
+    power_col = None
+    # Try to find a power column
+    for col in data.columns:
+        if 'POWER' in col.upper():
+            power_col = col
+            break
+    if power_col:
+        y = data[power_col]
+        if power_view_mode == 'smoothed':
+            # Use Savitzky-Golay filter for smoothing
+            window = min(501, len(y) if len(y) % 2 == 1 else len(y)-1)
+            if window < 5:
+                window = 5
+            if window % 2 == 0:
+                window += 1
+            y_smoothed = savgol_filter(y, window_length=window, polyorder=2, mode='interp')
+            fig.add_trace(go.Scatter(
+                x=data.index,
+                y=y_smoothed,
+                mode='lines',
+                name='Smoothed Power',
+                line=dict(color='purple', width=2, dash='dash')
+            ))
+        else:
+            fig.add_trace(go.Scatter(
+                x=data.index,
+                y=y,
+                mode='lines',
+                name='Raw Power',
+                line=dict(color='purple', width=2)
+            ))
+
+    # Add vertical line for current time
+    fig.add_vline(
+        x=current_time,
+        line_dash="dash",
+        line_color="orange",
+        annotation_text=f"Current Time: {current_time}"
+    )
+
+    fig.update_layout(
+        title='Power Over Time',
+        xaxis_title='Time Index',
+        yaxis_title='Power (W)',
+        legend=dict(x=0, y=1),
+        margin=dict(l=0, r=0, b=0, t=40),
+        height=400
+    )
+
+    return fig
+# Add another graph for Fan Speed
+@app.callback(
+    Output('fan-graph', 'figure'),
     [Input('time-slider', 'value')]
 )
-def update_power_graph(current_time):
+def update_fan_graph(current_time):
     fig = go.Figure()
-    print(data['DC BUS POWER'])
-    # Add power data if available
-    if 'DC BUS POWER' in data.columns:
-        fig.add_trace(go.Scatter(
-            x=data.index,
-            y=data['D4 DC Bus Current'],
-            mode='lines',
-            name='DC Bus Power',
-            line=dict(color='purple', width=2)
-        ))
     
-    if 'DC BUS POWER SMOOTHED' in data.columns:
+    # Add fan speed data if available
+    if 'Fan Speed' in data.columns:
         fig.add_trace(go.Scatter(
             x=data.index,
-            y=data['Fan Speed'],
+            y=data['fan_speed'],
             mode='lines',
-            name='DC Bus Power (Smoothed)',
-            line=dict(color='magenta', width=2, dash='dot')
+            name='Fan Speed',
+            line=dict(color='orange', width=2)
         ))
+        fig.add_trace(go.Scatter(
+            x=data.index,
+            y=data['SOC PERCENT'],
+            mode='lines',
+            name='Fan Speed',
+            line=dict(color='orange', width=2)
+        ))
+     
     
     # Add vertical line for current time
     fig.add_vline(
@@ -543,9 +661,9 @@ def update_power_graph(current_time):
     )
     
     fig.update_layout(
-        title='Power Over Time',
+        title='Fan Speed Over Time',
         xaxis_title='Time Index',
-        yaxis_title='Power (W)',
+        yaxis_title='Fan Speed (RPM)',
         legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
         height=400
