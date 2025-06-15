@@ -8,42 +8,51 @@ import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
 from scipy.signal import savgol_filter
+from dash import State
+from dash import callback_context
+import dash_bootstrap_components as dbc
 
 import trimesh
-# Initialize the Dash app
-app = dash.Dash(__name__)
+
+# Initialize the Dash app with enhanced styling
+app = dash.Dash(__name__, external_stylesheets=[
+    dbc.themes.BOOTSTRAP,
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
+    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css'
+])
+
 server = app.server
 
 # Load the data from CSV
 data = pd.read_csv("data/endurance.csv")
-#compute power from voltage and current colums: D4 DC Bus Current,D4 DC Bus Voltage
+data = data.iloc[::100].reset_index(drop=True)
+
+# Compute power from voltage and current columns: D4 DC Bus Current, D4 DC Bus Voltage
 if 'D4 DC Bus Current' in data.columns and 'D1 DC Bus Voltage' in data.columns:
     data['POWER'] = data['D4 DC Bus Current'] * data['D1 DC Bus Voltage']
 
+# Internal resistance of cell is 0.017ohm with a 96s8p configuration
+if 'D4 DC Bus Current' in data.columns and 'D1 DC Bus Voltage' in data.columns:
+    pack_internal_resistance = 0.017 / 8  # Ohms
+    data['THERMAL LOSS (W)'] = (data['D4 DC Bus Current'] ** 2) * pack_internal_resistance
+
+if 'Time' in data.columns:
+    data['Time'] = pd.to_datetime(data['Time'])
+
 battery_mesh = trimesh.load_mesh("stl/cassing.glb")
 
-#rotate -90 deg around z axis
+# Rotate -90 deg around z axis
 battery_mesh.apply_transform(trimesh.transformations.rotation_matrix(np.radians(-90), [0, 0, 1]))
 scale_factor = 0.032  # Adjust as needed to fit your unit scale
 battery_mesh.apply_scale(scale_factor)
 
 # Optional translation to align with your sensor grid
-# E.g., shift it to center around X=3, Y=10, Z=4
 translation_vector = [0, 18.5, 0]
 battery_mesh.apply_translation(translation_vector)
 vertices = battery_mesh.vertices
 faces = battery_mesh.faces
 mesh_x, mesh_y, mesh_z = vertices.T
 mesh_i, mesh_j, mesh_k = faces.T
-
-
-# 1 module of battery has 8 cells by 16, so 128 cells per module
-# 1 battery has 6 modules, so 768 cells per battery 
-# We have 32 sensors per module, so 192 sensors per battery
-# They are arranged with 16 on one side of a battery and 16 on the other side
-
-# In short, 12 slices of 16 sensors with maximum 12*16 per battery
-# The coordinates will be within X[0,15], Y[0,16], Z[0,8] for a battery (updated to 0-15 range)
 
 # Y,Z coordinates of sensors in a module (16 sensors)
 map_module = [(18.5, 5), (16, 2), (17, 7), (13.5, 1), (15, 7), (12, 2), (10, 2), (13, 7), 
@@ -66,30 +75,26 @@ x = []
 y = []
 z = []
 module_numbers = []
-# Updated x_convert to map modules to 0-15 range with proper spacing
 x_convert = [2.5, 5.0, 7.5, 10.0, 12.5, 15.0]  # 6 modules spread across 0-15 range
 
 for idx, col_name in enumerate(temp_columns):
-    # Column name is like "Module_4_Group6_Value1", so we can extract "Module", "Group" and "Value"
     i_split = col_name.split("_")
-    module = int(i_split[1]) if i_split[1] != '-1' else -1  # Handle Module_-1 case
+    module = int(i_split[1]) if i_split[1] != '-1' else -1
     sensor = int(i_split[2][5:])  # Extract sensor number from "Group6" -> 6
     value = i_split[3][-1]  # Extract "1" or "2" to differentiate
 
-    # Skip Module_-1 for 3D visualization
     if module == -1:
         temperatures[:, idx] = data[col_name].values
         continue
 
-    # Determine X coordinate for each module (now in 0-15 range)
     x_coord = x_convert[module]
     if module == 0 or module == 1 or module == 2:
         if 8 >= sensor or sensor >= 25:
-            x_coord = x_coord + 0.75  # Adjusted offset for 0-15 range
+            x_coord = x_coord + 0.75
         y_coord, z_coord = map_module[33-sensor-1]
     else:
         if 8 < sensor and sensor < 25:
-            x_coord = x_coord + 0.75  # Adjusted offset for 0-15 range
+            x_coord = x_coord + 0.75
         y_coord, z_coord = map_module[sensor-1]
     
     x.append(x_coord)
@@ -97,14 +102,13 @@ for idx, col_name in enumerate(temp_columns):
     z.append(z_coord)
     module_numbers.append(module)
     
-    # Fill the temperature array for each timestamp
-    temperatures[:, idx] = data[col_name].values  # Insert temperature values
+    temperatures[:, idx] = data[col_name].values
 
 # Calculate temperature statistics for each timestamp
 def calculate_temp_stats():
     temp_stats = []
     for i in range(num_timestamps):
-        valid_temps = temperatures[i][temperatures[i] > 0]  # Filter out invalid readings
+        valid_temps = temperatures[i][temperatures[i] > 0]
         if len(valid_temps) > 0:
             temp_stats.append({
                 'min_temp': np.min(valid_temps),
@@ -122,6 +126,7 @@ def calculate_temp_stats():
     return pd.DataFrame(temp_stats)
 
 temp_stats_df = calculate_temp_stats()
+
 # Calculate fan speed based on max temperature
 max_temp = temp_stats_df['max_temp']
 fan_speed = []
@@ -139,189 +144,483 @@ def create_interpolation_grid(x_val, points_y, points_z, temp_values, width=1.5)
     y_min, y_max = min(points_y), max(points_y)
     z_min, z_max = min(points_z), max(points_z)
     
-    # Create finer grid for better resolution
     grid_y, grid_z = np.mgrid[y_min:y_max:30j, z_min:z_max:30j]
     
-    # Create points for interpolation
     points = np.column_stack((points_y, points_z))
     grid_temp = griddata(points, temp_values, (grid_y, grid_z), method='cubic')
     
     return grid_y, grid_z, grid_temp, width
 
+# Custom CSS styles
+app.index_string = '''
+<!DOCTYPE html>
+<html>
+    <head>
+        {%metas%}
+        <title>{%title%}</title>
+        {%favicon%}
+        {%css%}
+        <style>
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                background: linear-gradient(135deg, #9d2f48 0%, #114b99 100%);
+                margin: 0;
+                padding: 0;
+                min-height: 100vh;
+            }
+            .main-container {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                min-height: 100vh;
+                padding: 0;
+            }
+            .hero-section {
+                background: linear-gradient(135deg, #9d2f48 0%, #114b99 100%);
+                color: white;
+                padding: 60px 20px 80px;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+            .hero-section::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+                opacity: 0.3;
+            }
+            .hero-content {
+                position: relative;
+                z-index: 1;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+            .section-card {
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border-radius: 20px;
+                margin: 30px auto;
+                max-width: 1200px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                overflow: hidden;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .section-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            }
+            .section-header {
+                background: linear-gradient(135deg, #9d2f48 0%, #114b99 100%);
+                color: white;
+                padding: 25px 35px;
+                margin: 0;
+            }
+            .section-content {
+                padding: 35px;
+            }
+            .control-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 25px;
+                margin-top: 25px;
+            }
+            .control-item {
+                background: rgba(255, 255, 255, 0.7);
+                padding: 20px;
+                border-radius: 15px;
+                border: 1px solid rgba(102, 126, 234, 0.2);
+                transition: all 0.3s ease;
+            }
+            .control-item:hover {
+                background: rgba(255, 255, 255, 0.9);
+                border-color: rgba(102, 126, 234, 0.4);
+                transform: translateY(-2px);
+            }
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+                margin: 20px 0;
+            }
+            .stat-card {
+                background: linear-gradient(135deg, #9d2f48 0%, #114b99 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 15px;
+                text-align: center;
+                box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+            }
+            .feature-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                margin: 30px 0;
+            }
+            .feature-card {
+                background: rgba(255, 255, 255, 0.8);
+                padding: 25px;
+                border-radius: 15px;
+                text-align: center;
+                border: 1px solid rgba(102, 126, 234, 0.2);
+                transition: all 0.3s ease;
+            }
+            .feature-card:hover {
+                background: rgba(255, 255, 255, 0.95);
+                transform: translateY(-3px);
+                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            }
+            .play-button {
+                background: linear-gradient(135deg, #9d2f48 0%, #114b99 100%);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 25px;
+                font-size: 16px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            }
+            .play-button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            }
+        </style>
+    </head>
+    <body>
+        {%app_entry%}
+        <footer>
+            {%config%}
+            {%scripts%}
+            {%renderer%}
+        </footer>
+    </body>
+</html>
+'''
+
 # Define the app layout
 app.layout = html.Div([
-    # Header
+    
     html.Div([
-        html.H1("🔋 Battery Temperature Dashboard", 
-                style={
-                    'textAlign': 'center',
-                    'color': '#1f2c56',
-                    'fontSize': '42px',
-                    'marginBottom': '0px',
-                    'fontWeight': '700',
-                }),
-        html.P("Real-time thermal analysis and power trends of a high-voltage battery system.",
-               style={
-                   'textAlign': 'center',
-                   'color': '#444',
-                   'fontSize': '18px',
-                   'marginTop': '5px',
-                   'marginBottom': '30px',
-                   'fontWeight': '300'
-               })
-    ], style={
-        'padding': '40px 20px 20px',
-        'background': 'linear-gradient(90deg, #eaf2ff 0%, #f8f9ff 100%)',
-        'borderBottom': '1px solid #dfe6f3',
-        'boxShadow': '0 2px 8px rgba(0, 0, 0, 0.05)'
-    }),
-
-    # Control Panel Card
+        html.Img(src='/assets/logo.svg', style={
+            'height': '80px',
+            'margin': '20px auto',
+            'display': 'block'
+        }), 
+    ]),
+    # Hero Section
     html.Div([
         html.Div([
-            html.Label("🕓 Time:", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-            dcc.Slider(
-                id='time-slider',
-                min=0,
-                max=num_timestamps - 1,
-                value=0,
-                marks={i: str(i) for i in range(0, num_timestamps, max(1, num_timestamps // 10))},
-                step=1
-            ),
-        ], style={'padding': '15px 0'}),
+            html.H1([
+                html.I(className="fas fa-battery-three-quarters", style={'marginRight': '15px'}),
+                "Advanced Battery Thermal Management System"
+            ], style={
+                'fontSize': '48px',
+                'fontWeight': '700',
+                'marginBottom': '20px',
+                'textAlign': 'center'
+            }),
+            html.P([
+                "Real-time 3D visualization and analysis of high-voltage battery pack thermal performance. "
+                "Monitor temperature distributions, power consumption, and thermal management efficiency "
+                "across 768 cells arranged in 6 modules with 192 precision sensors."
+            ], style={
+                'fontSize': '20px',
+                'fontWeight': '300',
+                'lineHeight': '1.6',
+                'maxWidth': '800px',
+                'margin': '0 auto 30px',
+                'opacity': '0.95'
+            }),
+            
+            # Feature highlights
+            html.Div([
+                html.Div([
+                    html.I(className="fas fa-cube", style={'fontSize': '24px', 'marginBottom': '10px'}),
+                    html.H4("3D Visualization", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
+                    html.P("Interactive 3D thermal mapping", style={'fontSize': '14px', 'opacity': '0.9'})
+                ], className="feature-card"),
+                
+                html.Div([
+                    html.I(className="fas fa-chart-line", style={'fontSize': '24px', 'marginBottom': '10px'}),
+                    html.H4("Real-time Analytics", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
+                    html.P("Live temperature and power trends", style={'fontSize': '14px', 'opacity': '0.9'})
+                ], className="feature-card"),
+                
+                html.Div([
+                    html.I(className="fas fa-thermometer-half", style={'fontSize': '24px', 'marginBottom': '10px'}),
+                    html.H4("Thermal Management", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
+                    html.P("Automated cooling system control", style={'fontSize': '14px', 'opacity': '0.9'})
+                ], className="feature-card"),
+                
+                html.Div([
+                    html.I(className="fas fa-microchip", style={'fontSize': '24px', 'marginBottom': '10px'}),
+                    html.H4("Multi-sensor Array", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
+                    html.P("192 precision temperature sensors", style={'fontSize': '14px', 'opacity': '0.9'})
+                ], className="feature-card"),
+            ], className="feature-grid")
+        ], className="hero-content")
+    ], className="hero-section"),
 
+    html.Div([
+        # System Overview Stats
         html.Div([
             html.Div([
-                html.Label("🧭 Z Max", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-                dcc.Slider(
-                    id='z-slider',
-                    min=min([z for z in z if z]),
-                    max=max([z for z in z if z]),
-                    value=max([z for z in z if z]),
-                    marks={i: str(i) for i in [min([z for z in z if z]), max([z for z in z if z])]},
-                    step=0.1
-                ),
-            ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px'}),
-
+                html.H2([
+                    html.I(className="fas fa-tachometer-alt", style={'marginRight': '10px'}),
+                    "System Overview"
+                ], style={'margin': '0 0 10px', 'color': 'white', 'fontSize': '28px', 'fontWeight': '600'}),
+                html.P("Key performance metrics and system specifications", 
+                       style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
+            ], className="section-header"),
+            
             html.Div([
-                html.Label("📦 Module Range (X: 0-15)", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-                dcc.RangeSlider(
-                    id='module-slider',
-                    min=0,
-                    max=16,
-                    value=[0, 16],
-                    marks={i: str(i) for i in range(0, 17, 2)},
-                    step=0.5
-                ),
-            ], style={'width': '48%', 'display': 'inline-block', 'padding': '10px'}),
-        ]),
+                html.Div([
+                    html.Div([
+                        html.H3("768", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
+                        html.P("Total Battery Cells", style={'margin': '5px 0 0', 'opacity': '0.9'})
+                    ], className="stat-card"),
+                    
+                    html.Div([
+                        html.H3("192", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
+                        html.P("Temperature Sensors", style={'margin': '5px 0 0', 'opacity': '0.9'})
+                    ], className="stat-card"),
+                    
+                    html.Div([
+                        html.H3("6", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
+                        html.P("Battery Modules", style={'margin': '5px 0 0', 'opacity': '0.9'})
+                    ], className="stat-card"),
+                    
+                    html.Div([
+                        html.H3("96S8P", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
+                        html.P("Cell Configuration", style={'margin': '5px 0 0', 'opacity': '0.9'})
+                    ], className="stat-card"),
+                ], className="stats-grid"),
+            ], className="section-content")
+        ], className="section-card"),
+
+        # Control Panel
+        html.Div([
             html.Div([
-        html.Label("🧱 Show Battery Casing", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-        dcc.Checklist(
-            id='toggle-casing',
-            options=[{'label': 'Show casing mesh', 'value': 'show'}],
-            value=['show'],
-            inputStyle={'marginRight': '8px', 'marginLeft': '12px'},
-            labelStyle={'display': 'inline-block', 'marginRight': '12px'}
-        )
-    ], style={'padding': '10px 0'}),
-        html.Div([
-            html.Label("🖌️ Surface Opacity", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-            dcc.Slider(
-                id='opacity-slider',
-                min=0,
-                max=1,
-                value=0.3,
-                marks={i/10: str(i/10) for i in range(0, 11, 2)},
-                step=0.05
-            ),
-        ], style={'width': '48%', 'padding': '10px'})
-    ], style={
-        'backgroundColor': 'white',
-        'padding': '30px',
-        'borderRadius': '15px',
-        'margin': '20px auto',
-        'maxWidth': '1100px',
-        'boxShadow': '0 4px 10px rgba(0, 0, 0, 0.06)'
-    }),
+                html.H2([
+                    html.I(className="fas fa-sliders-h", style={'marginRight': '10px'}),
+                    "Control Panel"
+                ], style={'margin': '0 0 10px', 'color': 'white', 'fontSize': '28px', 'fontWeight': '600'}),
+                html.P("Interactive controls for visualization parameters and time navigation", 
+                       style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
+            ], className="section-header"),
+            
+            html.Div([
+                html.Div([
+                    html.Div([
+                        html.Label([
+                            html.I(className="fas fa-clock", style={'marginRight': '8px'}),
+                            "Time Navigation"
+                        ], style={'fontWeight': '600', 'color': '#1f2c56', 'fontSize': '16px', 'marginBottom': '10px', 'display': 'block'}),
+                        dcc.Slider(
+                            id='time-slider',
+                            min=0,
+                            max=num_timestamps - 1,
+                            value=0,
+                            marks={i: str(i) for i in range(0, num_timestamps, max(1, num_timestamps // 10))},
+                            step=1,
+                            tooltip={"placement": "bottom", "always_visible": True}
+                        ),
+                        html.Div([
+                            html.Button([
+                                html.I(className="fas fa-play", style={'marginRight': '8px'}),
+                                "Play"
+                            ], id='play-button', n_clicks=0, className='play-button', 
+                            style={'marginTop': '15px'}),
+                            dcc.Interval(id='interval-component', interval=100, n_intervals=0, disabled=True)
+                        ])
+                    ], className="control-item"),
+                    
+                    html.Div([
+                        html.Label([
+                            html.I(className="fas fa-layer-group", style={'marginRight': '8px'}),
+                            "Z-Axis Range"
+                        ], style={'fontWeight': '600', 'color': '#1f2c56', 'fontSize': '16px', 'marginBottom': '10px', 'display': 'block'}),
+                        dcc.Slider(
+                            id='z-slider',
+                            min=min([z for z in z if z]),
+                            max=max([z for z in z if z]),
+                            value=max([z for z in z if z]),
+                            marks={i: f'{i:.1f}' for i in [min([z for z in z if z]), max([z for z in z if z])]},
+                            step=0.1,
+                            tooltip={"placement": "bottom", "always_visible": True}
+                        ),
+                    ], className="control-item"),
+                ], className="control-grid"),
+                
+                html.Div([
+                    html.Div([
+                        html.Label([
+                            html.I(className="fas fa-arrows-alt-h", style={'marginRight': '8px'}),
+                            "Module Range (X-Axis: 0-15)"
+                        ], style={'fontWeight': '600', 'color': '#1f2c56', 'fontSize': '16px', 'marginBottom': '10px', 'display': 'block'}),
+                        dcc.RangeSlider(
+                            id='module-slider',
+                            min=0,
+                            max=16,
+                            value=[0, 16],
+                            marks={i: str(i) for i in range(0, 17, 2)},
+                            step=0.5,
+                            tooltip={"placement": "bottom", "always_visible": True}
+                        ),
+                    ], className="control-item"),
+                    
+                    html.Div([
+                        html.Label([
+                            html.I(className="fas fa-adjust", style={'marginRight': '8px'}),
+                            "Surface Opacity"
+                        ], style={'fontWeight': '600', 'color': '#1f2c56', 'fontSize': '16px', 'marginBottom': '10px', 'display': 'block'}),
+                        dcc.Slider(
+                            id='opacity-slider',
+                            min=0,
+                            max=1,
+                            value=0.3,
+                            marks={i/10: f'{i/10:.1f}' for i in range(0, 11, 2)},
+                            step=0.05,
+                            tooltip={"placement": "bottom", "always_visible": True}
+                        ),
+                    ], className="control-item"),
+                ], className="control-grid"),
+                
+                html.Div([
+                    html.Label([
+                        html.I(className="fas fa-cube", style={'marginRight': '8px'}),
+                        "Battery Casing Visualization"
+                    ], style={'fontWeight': '600', 'color': '#1f2c56', 'fontSize': '16px', 'marginBottom': '15px', 'display': 'block'}),
+                    dcc.Checklist(
+                        id='toggle-casing',
+                        options=[{'label': ' Show 3D battery casing mesh', 'value': 'show'}],
+                        value=['show'],
+                        inputStyle={'marginRight': '10px', 'transform': 'scale(1.2)'},
+                        labelStyle={'display': 'inline-block', 'fontSize': '14px', 'color': '#444'}
+                    )
+                ], className="control-item", style={'gridColumn': 'span 2'})
+            ], className="section-content")
+        ], className="section-card"),
 
-    # 3D Visualization
-    html.Div([
-        dcc.Graph(id='battery-3d-graph', style={'height': '65vh', 'borderRadius': '12px'})
-    ], style={
-        'backgroundColor': 'white',
-        'padding': '20px',
-        'borderRadius': '15px',
-        'margin': '20px auto',
-        'maxWidth': '1100px',
-        'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.06)'
-    }),
+        # 3D Visualization
+        html.Div([
+            html.Div([
+                html.H2([
+                    html.I(className="fas fa-cube", style={'marginRight': '10px'}),
+                    "3D Thermal Visualization"
+                ], style={'margin': '0 0 10px', 'color': 'white', 'fontSize': '28px', 'fontWeight': '600'}),
+                html.P("Interactive 3D representation of battery temperature distribution with interpolated thermal surfaces", 
+                       style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
+            ], className="section-header"),
+            
+            html.Div([
+                dcc.Graph(id='battery-3d-graph', style={'height': '70vh', 'borderRadius': '12px'})
+            ], className="section-content", style={'padding': '20px'})
+        ], className="section-card"),
 
-    # Trend Graphs
-    html.Div([
+        # Analytics Dashboard
         html.Div([
-            html.Label("🔄 Temperature View Mode", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-            dcc.RadioItems(
-                id='temp-view-toggle',
-                options=[
-                    {'label': 'Raw Temperature', 'value': 'raw'},
-                    {'label': 'Derivative (30s Smoothed)', 'value': 'deriv'}
-                ],
-                value='raw',
-                labelStyle={'display': 'inline-block', 'marginRight': '12px'}
-            )
-        ], style={'padding': '10px 0'}),
-        html.Div([
-            dcc.Graph(id='temp-trends-graph')
-        ], style={
-            'width': '100%',
-            'padding': '10px',
-            'display': 'inline-block',
-            'verticalAlign': 'top'
-        }),
+            html.Div([
+                html.H2([
+                    html.I(className="fas fa-chart-line", style={'marginRight': '10px'}),
+                    "Performance Analytics"
+                ], style={'margin': '0 0 10px', 'color': 'white', 'fontSize': '28px', 'fontWeight': '600'}),
+                html.P("Comprehensive analysis of temperature trends, power consumption, and thermal management system performance", 
+                       style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
+            ], className="section-header"),
+            
+            html.Div([
+                # Temperature Trends Section
+                html.Div([
+                    html.H3([
+                        html.I(className="fas fa-thermometer-half", style={'marginRight': '8px'}),
+                        "Temperature Analysis"
+                    ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
+                    html.P("Monitor minimum, average, and maximum temperatures across all sensors with optional derivative analysis.",
+                           style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
+                    
+                    html.Div([
+                        html.Label([
+                            html.I(className="fas fa-eye", style={'marginRight': '8px'}),
+                            "View Mode"
+                        ], style={'fontWeight': '600', 'color': '#1f2c56', 'marginBottom': '10px', 'display': 'block'}),
+                        dcc.RadioItems(
+                            id='temp-view-toggle',
+                            options=[
+                                {'label': ' Raw Temperature Data', 'value': 'raw'},
+                                {'label': ' Temperature Derivative (30s Smoothed)', 'value': 'deriv'}
+                            ],
+                            value='raw',
+                            labelStyle={'display': 'block', 'marginBottom': '8px', 'fontSize': '14px'},
+                            inputStyle={'marginRight': '8px'}
+                        )
+                    ], style={'marginBottom': '20px'}),
+                    
+                    dcc.Graph(id='temp-trends-graph')
+                ], style={'marginBottom': '40px'}),
 
-        html.Div([
-            dcc.Graph(id='power-graph')
-        ], style={
-            'width': '100%',
-            'padding': '10px',
-            'display': 'inline-block',
-            'verticalAlign': 'top'
-        }),
-        #add a toggle to change to smoother power graph
-        html.Div([
-            html.Label("🔄 Power View Mode", style={'fontWeight': 'bold', 'color': '#1f2c56'}),
-            dcc.RadioItems(
-                id='power-view-toggle',
-                options=[
-                    {'label': 'Raw Power', 'value': 'raw'},
-                    {'label': 'Smoothed Power', 'value': 'smoothed'}
-                ],
-                value='raw',
-                labelStyle={'display': 'inline-block', 'marginRight': '12px'}
-            )
-        ], style={'padding': '10px 0'}),
-        html.Div([
-            dcc.Graph(id='fan-graph')
-        ], style={
-            'width': '100%',
-            'padding': '10px',
-            'display': 'inline-block',
-            'verticalAlign': 'top'
-        })
-    ], style={
-        'backgroundColor': 'white',
-        'padding': '20px',
-        'borderRadius': '15px',
-        'margin': '20px auto 40px',
-        'maxWidth': '1100px',
-        'boxShadow': '0 4px 12px rgba(0, 0, 0, 0.06)'
-    })
+                # Power Analysis Section
+                html.Div([
+                    html.H3([
+                        html.I(className="fas fa-bolt", style={'marginRight': '8px'}),
+                        "Power Consumption Analysis"
+                    ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
+                    html.P("Track electrical power consumption patterns with smoothing options for trend analysis.",
+                           style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
+                    
+                    html.Div([
+                        html.Label([
+                            html.I(className="fas fa-filter", style={'marginRight': '8px'}),
+                            "Processing Mode"
+                        ], style={'fontWeight': '600', 'color': '#1f2c56', 'marginBottom': '10px', 'display': 'block'}),
+                        dcc.RadioItems(
+                            id='power-view-toggle',
+                            options=[
+                                {'label': ' Raw Power Data', 'value': 'raw'},
+                                {'label': ' Savitzky-Golay Smoothed', 'value': 'smoothed'}
+                            ],
+                            value='raw',
+                            labelStyle={'display': 'block', 'marginBottom': '8px', 'fontSize': '14px'},
+                            inputStyle={'marginRight': '8px'}
+                        )
+                    ], style={'marginBottom': '20px'}),
+                    
+                    dcc.Graph(id='power-graph')
+                ], style={'marginBottom': '40px'}),
 
-], style={
-    'fontFamily': 'Segoe UI, sans-serif',
-    'backgroundColor': '#f4f7fb'
-})  
+                # Thermal Management Section
+                html.Div([
+                    html.H3([
+                        html.I(className="fas fa-fan", style={'marginRight': '8px'}),
+                        "Thermal Management System"
+                    ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
+                    html.P("Automated cooling fan speed control based on maximum battery temperature thresholds.",
+                           style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
+                    
+                    dcc.Graph(id='fan-graph')
+                ], style={'marginBottom': '40px'}),
+
+                # State of Charge Section
+                html.Div([
+                    html.H3([
+                        html.I(className="fas fa-battery-half", style={'marginRight': '8px'}),
+                        "State of Charge Monitoring"
+                    ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
+                    html.P("Track battery state of charge percentage over the operational timeline.",
+                           style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
+                    
+                    dcc.Graph(id='soc-graph')
+                ])
+            ], className="section-content")
+        ], className="section-card")
+    ], className="main-container")
+], style={'fontFamily': 'Inter, sans-serif', 'color': '#333'}),
+
+
 
 # Define callback to update the 3D graph
 @app.callback(
@@ -643,15 +942,7 @@ def update_fan_graph(current_time):
             name='Fan Speed',
             line=dict(color='orange', width=2)
         ))
-        fig.add_trace(go.Scatter(
-            x=data.index,
-            y=data['SOC PERCENT'],
-            mode='lines',
-            name='Fan Speed',
-            line=dict(color='orange', width=2)
-        ))
-     
-    
+       
     # Add vertical line for current time
     fig.add_vline(
         x=current_time,
@@ -670,7 +961,71 @@ def update_fan_graph(current_time):
     )
     
     return fig
+#add new line graph for SOC PERCENT
+@app.callback(
+    Output('soc-graph', 'figure'),
+    [Input('time-slider', 'value')]
+)
+def update_soc_graph(current_time):
+    fig = go.Figure()
+    
+    # Add SOC PERCENT data if available
+    if 'SOC PERCENT' in data.columns:
+        fig.add_trace(go.Scatter(
+            x=data.index,
+            y=data['SOC PERCENT'],
+            mode='lines',
+            name='SOC Percent',
+            line=dict(color='green', width=2)
+        ))
+    
+    # Add vertical line for current time
+    fig.add_vline(
+        x=current_time,
+        line_dash="dash",
+        line_color="orange",
+        annotation_text=f"Current Time: {current_time}"
+    )
+    
+    fig.update_layout(
+        title='State of Charge (SOC) Over Time',
+        xaxis_title='Time Index',
+        yaxis_title='SOC Percent (%)',
+        legend=dict(x=0, y=1),
+        margin=dict(l=0, r=0, b=0, t=40),
+        height=400
+    )
+    
+    return fig
+
+@app.callback(
+    Output('time-slider', 'value'),
+    Output('interval-component', 'disabled'),
+    Output('play-button', 'children'),
+    Input('interval-component', 'n_intervals'),
+    Input('play-button', 'n_clicks'),
+    State('time-slider', 'value'),
+    State('interval-component', 'disabled'),
+)
+def handle_play_pause_or_advance(n_intervals, n_clicks, current_value, is_disabled):
+    triggered_id = callback_context.triggered_id
+
+    if triggered_id == 'play-button':
+        # Toggle play/pause
+        if is_disabled:
+            return current_value, False, '⏸️ Pause'
+        else:
+            return current_value, True, '▶️ Play'
+
+    elif triggered_id == 'interval-component' and not is_disabled:
+        # Advance slider
+        next_value = current_value + 20
+        if next_value >= num_timestamps:
+            return num_timestamps - 20, True, '▶️ Play'  # Pause at end
+        return next_value, False, '⏸️ Pause'
+
+    raise dash.exceptions.PreventUpdate
 
 # Run the app
 if __name__ == '__main__':
-    app.run(debug=False, port=10000)
+    app.run(debug=True, port=10000)

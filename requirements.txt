@@ -7,3 +7,4 @@ dash
 plotly
 gunicorn
 trimesh
+dash_bootstrap_components
