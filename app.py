@@ -3,15 +3,14 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import plotly.express as px
+from scipy.signal import savgol_filter
 from scipy.interpolate import griddata
 import dash
 from dash import dcc, html
 from dash.dependencies import Input, Output
-from scipy.signal import savgol_filter
 from dash import State
 from dash import callback_context
 import dash_bootstrap_components as dbc
-
 import trimesh
 
 # Initialize the Dash app with enhanced styling
@@ -25,29 +24,24 @@ server = app.server
 
 # Load the data from CSV
 data = pd.read_csv("data/endurance.csv")
-data = data.iloc[::100].reset_index(drop=True)
 
-# Compute power from voltage and current columns: D4 DC Bus Current, D4 DC Bus Voltage
+# Pre - processing
 if 'D4 DC Bus Current' in data.columns and 'D1 DC Bus Voltage' in data.columns:
     data['POWER'] = data['D4 DC Bus Current'] * data['D1 DC Bus Voltage']
-
-# Internal resistance of cell is 0.017ohm with a 96s8p configuration
 if 'D4 DC Bus Current' in data.columns and 'D1 DC Bus Voltage' in data.columns:
     pack_internal_resistance = 0.017 / 8  # Ohms
     data['THERMAL LOSS (W)'] = (data['D4 DC Bus Current'] ** 2) * pack_internal_resistance
-
 if 'Time' in data.columns:
     data['Time'] = pd.to_datetime(data['Time'])
 
+data = data.iloc[::100].reset_index(drop=True)
+
+# Load the battery casing mesh
 battery_mesh = trimesh.load_mesh("stl/cassing.glb")
-
-# Rotate -90 deg around z axis
 battery_mesh.apply_transform(trimesh.transformations.rotation_matrix(np.radians(-90), [0, 0, 1]))
-scale_factor = 0.032  # Adjust as needed to fit your unit scale
+scale_factor = 0.036  # Adjust as needed to fit your unit scale
 battery_mesh.apply_scale(scale_factor)
-
-# Optional translation to align with your sensor grid
-translation_vector = [0, 18.5, 0]
+translation_vector = [0, 20.0, 0]
 battery_mesh.apply_translation(translation_vector)
 vertices = battery_mesh.vertices
 faces = battery_mesh.faces
@@ -75,7 +69,9 @@ x = []
 y = []
 z = []
 module_numbers = []
-x_convert = [2.5, 5.0, 7.5, 10.0, 12.5, 15.0]  # 6 modules spread across 0-15 range
+#x_convert = [2.5, 5.0, 7.5, 10.0, 12.5, 15.0]  # 6 modules spread across 0-15 range
+x_convert = [1,3,15,12,6,0]
+
 
 for idx, col_name in enumerate(temp_columns):
     i_split = col_name.split("_")
@@ -88,14 +84,14 @@ for idx, col_name in enumerate(temp_columns):
         continue
 
     x_coord = x_convert[module]
-    if module == 0 or module == 1 or module == 2:
-        if 8 >= sensor or sensor >= 25:
-            x_coord = x_coord + 0.75
-        y_coord, z_coord = map_module[33-sensor-1]
-    else:
-        if 8 < sensor and sensor < 25:
-            x_coord = x_coord + 0.75
-        y_coord, z_coord = map_module[sensor-1]
+    try:
+        if module in [0, 1, 2]:
+            y_coord, z_coord = map_module[sensor - 1]
+        else:
+            y_coord, z_coord = map_module[sensor - 1]
+    except IndexError:
+        print(f"[Warning] Invalid sensor index: sensor={sensor}")
+        continue
     
     x.append(x_coord)
     y.append(y_coord)
@@ -928,13 +924,14 @@ def update_power_graph(current_time, power_view_mode):
 # Add another graph for Fan Speed
 @app.callback(
     Output('fan-graph', 'figure'),
-    [Input('time-slider', 'value')]
+    [Input('time-slider', 'value'),
+     Input('power-view-toggle', 'value')]
 )
-def update_fan_graph(current_time):
+def update_fan_graph(current_time, toggle_casing):
     fig = go.Figure()
     
     # Add fan speed data if available
-    if 'Fan Speed' in data.columns:
+    if 'fan_speed' in data.columns:
         fig.add_trace(go.Scatter(
             x=data.index,
             y=data['fan_speed'],
@@ -954,7 +951,7 @@ def update_fan_graph(current_time):
     fig.update_layout(
         title='Fan Speed Over Time',
         xaxis_title='Time Index',
-        yaxis_title='Fan Speed (RPM)',
+        yaxis_title='Fan Speed (%)',
         legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
         height=400
@@ -964,9 +961,10 @@ def update_fan_graph(current_time):
 #add new line graph for SOC PERCENT
 @app.callback(
     Output('soc-graph', 'figure'),
-    [Input('time-slider', 'value')]
+    [Input('time-slider', 'value'),
+     Input('power-view-toggle', 'value')]
 )
-def update_soc_graph(current_time):
+def update_soc_graph(current_time, view_mode):
     fig = go.Figure()
     
     # Add SOC PERCENT data if available
