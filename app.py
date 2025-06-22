@@ -1,4 +1,3 @@
-
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -886,8 +885,7 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
                                 lenmode='fraction',
                                 len=0.75
                             ),
-                            name=f'Module {x_pos} Front',
-                            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<br>Z: %{z:.2f}<br>Temp: %{surfacecolor:.1f}°C<extra></extra>'
+                            name=f'Module {x_pos} Front'
                         ))
                         
                         # Back surface
@@ -903,8 +901,7 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
                             cmax=temp_max,
                             opacity=opacity,
                             showscale=False,  # Only show colorbar once
-                            name=f'Module {x_pos} Back',
-                            hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<br>Z: %{z:.2f}<br>Temp: %{surfacecolor:.1f}°C<extra></extra>'
+                            name=f'Module {x_pos} Back'
                         ))
                 
                 # Add scatter points for actual sensor positions with larger markers
@@ -923,9 +920,7 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
                         line=dict(width=2, color='black')  # Add border to markers
                     ),
                     showlegend=False,
-                    name=f'Sensors {x_pos}',
-                    text=[f'Sensor Temp: {t:.1f}°C' for t in temps],
-                    hovertemplate='X: %{x:.2f}<br>Y: %{y:.2f}<br>Z: %{z:.2f}<br>%{text}<extra></extra>'
+                    name=f'Sensors {x_pos}'
                 ))
     
     # Set the layout
@@ -943,59 +938,26 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
             color='lightgray',
             opacity=0.40,
             name='Battery Case',
-            showscale=False,
-            hovertemplate='Battery Casing<extra></extra>'
+            showscale=False
         ))
     
-    # Calculate current temperature stats for annotations
-    current_temps = temperatures[time_index][temperatures[time_index] > 0]
-    if len(current_temps) > 0:
-        avg_temp = np.mean(current_temps)
-        max_temp = np.max(current_temps)
-        temp_spread = max_temp - np.min(current_temps)
-    else:
-        avg_temp = max_temp = temp_spread = 0
-    
     fig.update_layout(
-        title=dict(
-            text=f'Battery Temperature at Time {time_index} | Avg: {avg_temp:.1f}°C | Max: {max_temp:.1f}°C | Spread: {temp_spread:.1f}°C',
-            font=dict(size=16)
-        ),
+        title=f'Battery Temperature at Time {time_index} (X-axis: 0-15 range)',
         scene=dict(
-            xaxis_title='X-axis (Module Position)',
-            yaxis_title='Y-axis (Width)',
-            zaxis_title='Z-axis (Height)',
+            xaxis_title='X-axis (0-15 range)',
+            yaxis_title='Y-axis',
+            zaxis_title='Z-axis',
             camera=camera,
             aspectmode='data',
-            xaxis=dict(
-                range=[0, 16],
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='lightgray'
-            ),
-            yaxis=dict(
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='lightgray'
-            ),
-            zaxis=dict(
-                showgrid=True,
-                gridwidth=1,
-                gridcolor='lightgray'
-            )
+            xaxis=dict(range=[0, 16])  # Ensure X-axis shows 0-16 range
         ),
         margin=dict(l=0, r=0, b=0, t=40),
-        height=600,
-        hoverlabel=dict(
-            bgcolor="white",
-            font_size=12,
-            font_family="Inter"
-        )
+        height=600
     )
     
     return fig
 
-# Define callback to update temperature trends with fixed legend
+# Define callback to update temperature trends
 @app.callback(
     Output('temp-trends-graph', 'figure'),
     [Input('time-slider', 'value'),
@@ -1019,11 +981,6 @@ def update_temp_trends(current_time, view_mode):
             line=dict(color='green', width=2)
         ))
         y_title = 'Temperature (°C)'
-        
-        # Add threshold line
-        fig.add_hline(y=45, line_dash="dash", line_color="orange", 
-                      annotation_text="Warning Threshold (45°C)",
-                      annotation_position="right")
     else:
         smoothed = temp_stats_df[['min_temp', 'avg_temp', 'max_temp']].apply(
             lambda col: savgol_filter(col, window_length=5000, polyorder=2, mode='interp')
@@ -1048,38 +1005,23 @@ def update_temp_trends(current_time, view_mode):
     fig.add_vline(
         x=current_time,
         line_dash="dash",
-        line_color="purple",
-        annotation_text=f"Current: {current_time}",
-        annotation_position="top"
+        line_color="orange",
+        annotation_text=f"Current Time: {current_time}"
     )
 
     fig.update_layout(
         title='Temperature Trends Over Time',
         xaxis_title='Time Index',
         yaxis_title=y_title,
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            xanchor='left',
-            yanchor='top',
-            bgcolor='rgba(255, 255, 255, 0.8)',
-            bordercolor='rgba(0, 0, 0, 0.2)',
-            borderwidth=1
-        ),
+        legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
-        height=400,
-        hovermode='x unified',
-        hoverlabel=dict(
-            bgcolor="white",
-            font_size=12,
-            font_family="Inter"
-        )
+        height=400
     )
 
     return fig
 
 
-# Define callback to update power graph with annotations
+# Define callback to update power graph
 @app.callback(
     Output('power-graph', 'figure'),
     [Input('time-slider', 'value'),
@@ -1108,8 +1050,7 @@ def update_power_graph(current_time, power_view_mode):
                 y=y_smoothed,
                 mode='lines',
                 name='Smoothed Power',
-                line=dict(color='purple', width=2, dash='dash'),
-                hovertemplate='Time: %{x}<br>Power: %{y:.1f}W<extra></extra>'
+                line=dict(color='purple', width=2, dash='dash')
             ))
         else:
             fig.add_trace(go.Scatter(
@@ -1117,49 +1058,28 @@ def update_power_graph(current_time, power_view_mode):
                 y=y,
                 mode='lines',
                 name='Raw Power',
-                line=dict(color='purple', width=2),
-                hovertemplate='Time: %{x}<br>Power: %{y:.1f}W<extra></extra>'
+                line=dict(color='purple', width=2)
             ))
-        
-        # Add peak power annotations
-        if len(y) > 0:
-            peak_power = np.max(y)
-            peak_idx = np.argmax(y)
-            fig.add_annotation(
-                x=peak_idx,
-                y=peak_power,
-                text=f"Peak: {peak_power:.1f}W",
-                showarrow=True,
-                arrowhead=2,
-                arrowsize=1,
-                arrowwidth=2,
-                arrowcolor="red",
-                ax=-50,
-                ay=-30
-            )
 
     # Add vertical line for current time
     fig.add_vline(
         x=current_time,
         line_dash="dash",
         line_color="orange",
-        annotation_text=f"Current: {current_time}",
-        annotation_position="top"
+        annotation_text=f"Current Time: {current_time}"
     )
 
     fig.update_layout(
-        title='Power Consumption Over Time',
+        title='Power Over Time',
         xaxis_title='Time Index',
         yaxis_title='Power (W)',
-        legend=dict(x=0.02, y=0.98, bgcolor='rgba(255, 255, 255, 0.8)'),
+        legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
-        height=400,
-        hovermode='x unified'
+        height=400
     )
 
     return fig
-
-# Add another graph for Fan Speed with enhanced tooltips
+# Add another graph for Fan Speed
 @app.callback(
     Output('fan-graph', 'figure'),
     [Input('time-slider', 'value')]
@@ -1174,38 +1094,28 @@ def update_fan_graph(current_time):
             y=data['fan_speed'],
             mode='lines',
             name='Fan Speed',
-            line=dict(color='orange', width=2),
-            hovertemplate='Time: %{x}<br>Fan Speed: %{y:.1f} RPM<extra></extra>'
+            line=dict(color='orange', width=2)
         ))
-        
-        # Add fan activation zones
-        fig.add_hrect(y0=0, y1=35, fillcolor="green", opacity=0.1, 
-                      annotation_text="OFF Zone", annotation_position="right")
-        fig.add_hrect(y0=35, y1=70, fillcolor="yellow", opacity=0.1, 
-                      annotation_text="Variable Speed", annotation_position="right")
        
     # Add vertical line for current time
     fig.add_vline(
         x=current_time,
         line_dash="dash",
-        line_color="purple",
-        annotation_text=f"Current: {current_time}",
-        annotation_position="top"
+        line_color="orange",
+        annotation_text=f"Current Time: {current_time}"
     )
     
     fig.update_layout(
-        title='Cooling Fan Speed Control',
+        title='Fan Speed Over Time',
         xaxis_title='Time Index',
         yaxis_title='Fan Speed (RPM)',
-        legend=dict(x=0.02, y=0.98, bgcolor='rgba(255, 255, 255, 0.8)'),
+        legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
-        height=400,
-        hovermode='x unified'
+        height=400
     )
     
     return fig
-
-# Add new line graph for SOC PERCENT with insights
+#add new line graph for SOC PERCENT
 @app.callback(
     Output('soc-graph', 'figure'),
     [Input('time-slider', 'value')]
@@ -1220,36 +1130,24 @@ def update_soc_graph(current_time):
             y=data['SOC PERCENT'],
             mode='lines',
             name='SOC Percent',
-            line=dict(color='green', width=2),
-            hovertemplate='Time: %{x}<br>SOC: %{y:.1f}%<extra></extra>'
+            line=dict(color='green', width=2)
         ))
-        
-        # Add SOC zones
-        fig.add_hrect(y0=0, y1=20, fillcolor="red", opacity=0.1, 
-                      annotation_text="Low SOC", annotation_position="right")
-        fig.add_hrect(y0=20, y1=80, fillcolor="green", opacity=0.1, 
-                      annotation_text="Optimal Range", annotation_position="right")
-        fig.add_hrect(y0=80, y1=100, fillcolor="yellow", opacity=0.1, 
-                      annotation_text="High SOC", annotation_position="right")
     
     # Add vertical line for current time
     fig.add_vline(
         x=current_time,
         line_dash="dash",
-        line_color="purple",
-        annotation_text=f"Current: {current_time}",
-        annotation_position="top"
+        line_color="orange",
+        annotation_text=f"Current Time: {current_time}"
     )
     
     fig.update_layout(
-        title='Battery State of Charge',
+        title='State of Charge (SOC) Over Time',
         xaxis_title='Time Index',
         yaxis_title='SOC Percent (%)',
-        legend=dict(x=0.02, y=0.98, bgcolor='rgba(255, 255, 255, 0.8)'),
+        legend=dict(x=0, y=1),
         margin=dict(l=0, r=0, b=0, t=40),
-        height=400,
-        yaxis=dict(range=[0, 100]),
-        hovermode='x unified'
+        height=400
     )
     
     return fig
