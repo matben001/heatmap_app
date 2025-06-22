@@ -127,6 +127,11 @@ def calculate_temp_stats():
 
 temp_stats_df = calculate_temp_stats()
 
+# Compute peak temperature for insight
+peak_row = temp_stats_df.loc[temp_stats_df.max_temp.idxmax()]
+peak_time = peak_row.timestamp
+peak_val  = peak_row.max_temp
+
 # Calculate fan speed based on max temperature
 max_temp = temp_stats_df['max_temp']
 fan_speed = []
@@ -303,14 +308,40 @@ app.index_string = '''
 
 # Define the app layout
 app.layout = html.Div([
-    
+    dcc.Store(id='active-view', data='3d'),
     html.Div([
         html.Img(src='/assets/logo.svg', style={
             'height': '80px',
             'margin': '20px auto',
             'display': 'block'
-        }), 
+        }),
+        html.Div(
+            dbc.Button("❔ How to use", id="help-open", color="light", size="sm"),
+            style={"textAlign":"right","padding":"0 20px"}
+        ),
+        dbc.Modal(
+            [
+              dbc.ModalHeader("Quick Start Guide"),
+              dbc.ModalBody([
+                html.Ul([
+                  html.Li([html.Mark("Time Slider"), ": scrub or animate through your dataset."]),
+                  html.Li([html.Mark("Z-Axis Slider"), ": hide high-Z sensors or surfaces."]),
+                  html.Li([html.Mark("Module Range"), ": focus on specific module slices."]),
+                  html.Li([html.Mark("Opacity"), ": tune surface transparency."]),
+                ]),
+                html.P("Hover any point in the 3D view to see its exact X, Y, Z and temperature.")
+              ]),
+              dbc.ModalFooter(dbc.Button("Got it!", id="help-close", color="primary"))
+            ],
+            id="help-modal",
+            is_open=False
+        ),
     ]),
+    html.Div([
+      html.H4("Hot Spot Alert"),
+      html.P(f"Peak pack temperature of {peak_val:.1f}°C happened at t={peak_time}.")
+    ], style={'padding':'15px','background':'#ffe5e5','border':'1px solid #ffcccc','borderRadius':'8px','maxWidth':'350px','margin':'20px auto'}),
+    
     # Hero Section
     html.Div([
         html.Div([
@@ -335,27 +366,22 @@ app.layout = html.Div([
                 'margin': '0 auto 30px',
                 'opacity': '0.95'
             }),
-            
-            # Feature highlights
             html.Div([
                 html.Div([
                     html.I(className="fas fa-cube", style={'fontSize': '24px', 'marginBottom': '10px'}),
                     html.H4("3D Visualization", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
                     html.P("Interactive 3D thermal mapping", style={'fontSize': '14px', 'opacity': '0.9'})
                 ], className="feature-card"),
-                
                 html.Div([
                     html.I(className="fas fa-chart-line", style={'fontSize': '24px', 'marginBottom': '10px'}),
                     html.H4("Real-time Analytics", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
                     html.P("Live temperature and power trends", style={'fontSize': '14px', 'opacity': '0.9'})
                 ], className="feature-card"),
-                
                 html.Div([
                     html.I(className="fas fa-thermometer-half", style={'fontSize': '24px', 'marginBottom': '10px'}),
                     html.H4("Thermal Management", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
                     html.P("Automated cooling system control", style={'fontSize': '14px', 'opacity': '0.9'})
                 ], className="feature-card"),
-                
                 html.Div([
                     html.I(className="fas fa-microchip", style={'fontSize': '24px', 'marginBottom': '10px'}),
                     html.H4("Multi-sensor Array", style={'margin': '10px 0 5px', 'fontWeight': '600'}),
@@ -364,9 +390,8 @@ app.layout = html.Div([
             ], className="feature-grid")
         ], className="hero-content")
     ], className="hero-section"),
-
     html.Div([
-        # System Overview Stats
+          # System Overview Stats
         html.Div([
             html.Div([
                 html.H2([
@@ -376,24 +401,20 @@ app.layout = html.Div([
                 html.P("Key performance metrics and system specifications", 
                        style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
             ], className="section-header"),
-            
             html.Div([
                 html.Div([
                     html.Div([
                         html.H3("768", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
                         html.P("Total Battery Cells", style={'margin': '5px 0 0', 'opacity': '0.9'})
                     ], className="stat-card"),
-                    
                     html.Div([
                         html.H3("192", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
                         html.P("Temperature Sensors", style={'margin': '5px 0 0', 'opacity': '0.9'})
                     ], className="stat-card"),
-                    
                     html.Div([
                         html.H3("6", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
                         html.P("Battery Modules", style={'margin': '5px 0 0', 'opacity': '0.9'})
                     ], className="stat-card"),
-                    
                     html.Div([
                         html.H3("96S8P", style={'fontSize': '32px', 'fontWeight': '700', 'margin': '0'}),
                         html.P("Cell Configuration", style={'margin': '5px 0 0', 'opacity': '0.9'})
@@ -401,8 +422,7 @@ app.layout = html.Div([
                 ], className="stats-grid"),
             ], className="section-content")
         ], className="section-card"),
-
-        # Control Panel
+         # Control Panel
         html.Div([
             html.Div([
                 html.H2([
@@ -412,7 +432,6 @@ app.layout = html.Div([
                 html.P("Interactive controls for visualization parameters and time navigation", 
                        style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
             ], className="section-header"),
-            
             html.Div([
                 html.Div([
                     html.Div([
@@ -429,6 +448,7 @@ app.layout = html.Div([
                             step=1,
                             tooltip={"placement": "bottom", "always_visible": True}
                         ),
+                        dbc.Tooltip("Move this to advance time step-by-step", target="time-slider", placement="bottom"),
                         html.Div([
                             html.Button([
                                 html.I(className="fas fa-play", style={'marginRight': '8px'}),
@@ -438,7 +458,6 @@ app.layout = html.Div([
                             dcc.Interval(id='interval-component', interval=100, n_intervals=0, disabled=True)
                         ])
                     ], className="control-item"),
-                    
                     html.Div([
                         html.Label([
                             html.I(className="fas fa-layer-group", style={'marginRight': '8px'}),
@@ -453,9 +472,9 @@ app.layout = html.Div([
                             step=0.1,
                             tooltip={"placement": "bottom", "always_visible": True}
                         ),
+                        dbc.Tooltip("Hide sensors above this height", target="z-slider", placement="left"),
                     ], className="control-item"),
                 ], className="control-grid"),
-                
                 html.Div([
                     html.Div([
                         html.Label([
@@ -471,8 +490,8 @@ app.layout = html.Div([
                             step=0.5,
                             tooltip={"placement": "bottom", "always_visible": True}
                         ),
+                        dbc.Tooltip("Focus on specific module slices", target="module-slider", placement="bottom"),
                     ], className="control-item"),
-                    
                     html.Div([
                         html.Label([
                             html.I(className="fas fa-adjust", style={'marginRight': '8px'}),
@@ -487,9 +506,9 @@ app.layout = html.Div([
                             step=0.05,
                             tooltip={"placement": "bottom", "always_visible": True}
                         ),
+                        dbc.Tooltip("Tune surface transparency", target="opacity-slider", placement="left"),
                     ], className="control-item"),
                 ], className="control-grid"),
-                
                 html.Div([
                     html.Label([
                         html.I(className="fas fa-cube", style={'marginRight': '8px'}),
@@ -505,7 +524,6 @@ app.layout = html.Div([
                 ], className="control-item", style={'gridColumn': 'span 2'})
             ], className="section-content")
         ], className="section-card"),
-
         # 3D Visualization
         html.Div([
             html.Div([
@@ -516,12 +534,10 @@ app.layout = html.Div([
                 html.P("Interactive 3D representation of battery temperature distribution with interpolated thermal surfaces", 
                        style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
             ], className="section-header"),
-            
             html.Div([
                 dcc.Graph(id='battery-3d-graph', style={'height': '70vh', 'borderRadius': '12px'})
             ], className="section-content", style={'padding': '20px'})
         ], className="section-card"),
-
         # Analytics Dashboard
         html.Div([
             html.Div([
@@ -532,9 +548,8 @@ app.layout = html.Div([
                 html.P("Comprehensive analysis of temperature trends, power consumption, and thermal management system performance", 
                        style={'margin': '0', 'opacity': '0.9', 'fontSize': '16px'})
             ], className="section-header"),
-            
             html.Div([
-                # Temperature Trends Section
+                 # Temperature Trends Section
                 html.Div([
                     html.H3([
                         html.I(className="fas fa-thermometer-half", style={'marginRight': '8px'}),
@@ -542,7 +557,6 @@ app.layout = html.Div([
                     ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
                     html.P("Monitor minimum, average, and maximum temperatures across all sensors with optional derivative analysis.",
                            style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
-                    
                     html.Div([
                         html.Label([
                             html.I(className="fas fa-eye", style={'marginRight': '8px'}),
@@ -559,11 +573,8 @@ app.layout = html.Div([
                             inputStyle={'marginRight': '8px'}
                         )
                     ], style={'marginBottom': '20px'}),
-                    
                     dcc.Graph(id='temp-trends-graph')
                 ], style={'marginBottom': '40px'}),
-
-                # Power Analysis Section
                 html.Div([
                     html.H3([
                         html.I(className="fas fa-bolt", style={'marginRight': '8px'}),
@@ -571,7 +582,6 @@ app.layout = html.Div([
                     ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
                     html.P("Track electrical power consumption patterns with smoothing options for trend analysis.",
                            style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
-                    
                     html.Div([
                         html.Label([
                             html.I(className="fas fa-filter", style={'marginRight': '8px'}),
@@ -588,11 +598,8 @@ app.layout = html.Div([
                             inputStyle={'marginRight': '8px'}
                         )
                     ], style={'marginBottom': '20px'}),
-                    
                     dcc.Graph(id='power-graph')
                 ], style={'marginBottom': '40px'}),
-
-                # Thermal Management Section
                 html.Div([
                     html.H3([
                         html.I(className="fas fa-fan", style={'marginRight': '8px'}),
@@ -600,11 +607,8 @@ app.layout = html.Div([
                     ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
                     html.P("Automated cooling fan speed control based on maximum battery temperature thresholds.",
                            style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
-                    
                     dcc.Graph(id='fan-graph')
                 ], style={'marginBottom': '40px'}),
-
-                # State of Charge Section
                 html.Div([
                     html.H3([
                         html.I(className="fas fa-battery-half", style={'marginRight': '8px'}),
@@ -612,13 +616,12 @@ app.layout = html.Div([
                     ], style={'color': '#1f2c56', 'fontSize': '22px', 'fontWeight': '600', 'marginBottom': '15px'}),
                     html.P("Track battery state of charge percentage over the operational timeline.",
                            style={'color': '#666', 'marginBottom': '20px', 'fontSize': '14px'}),
-                    
                     dcc.Graph(id='soc-graph')
                 ])
             ], className="section-content")
         ], className="section-card")
     ], className="main-container")
-], style={'fontFamily': 'Inter, sans-serif', 'color': '#333'}),
+], style={'fontFamily': 'Inter, sans-serif', 'color': '#333'})
 
 
 
@@ -702,7 +705,7 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
                 temps = temps[valid_temp_mask]
                 
                 # Create interpolation grid with width
-                if len(points_y) > 3:  # Need at least 4 points for interpolation
+                if len(points_y) > 3:  # Need to at least 4 points for interpolation
                     grid_y, grid_z, grid_temp, width = create_interpolation_grid(x_pos, points_y, points_z, temps)
                     
                     # Remove NaN values (outside the convex hull of the input points)
@@ -803,7 +806,69 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
     
     return fig
 
-# Define callback to update temperature trends
+# Tooltips for controls
+# In the layout, after each relevant slider, add the corresponding tooltip
+# For time-slider
+dcc.Slider(
+    id='time-slider',
+    min=0,
+    max=num_timestamps - 1,
+    value=0,
+    marks={i: str(i) for i in range(0, num_timestamps, max(1, num_timestamps // 10))},
+    step=1,
+    tooltip={"placement": "bottom", "always_visible": True}
+),
+dbc.Tooltip("Move this to advance time step-by-step", target="time-slider", placement="bottom"),
+
+# For z-slider
+dcc.Slider(
+    id='z-slider',
+    min=min([z for z in z if z]),
+    max=max([z for z in z if z]),
+    value=max([z for z in z if z]),
+    marks={i: f'{i:.1f}' for i in [min([z for z in z if z]), max([z for z in z if z])]},
+    step=0.1,
+    tooltip={"placement": "bottom", "always_visible": True}
+),
+dbc.Tooltip("Hide sensors above this height", target="z-slider", placement="left"),
+
+# For module-slider
+dcc.RangeSlider(
+    id='module-slider',
+    min=0,
+    max=16,
+    value=[0, 16],
+    marks={i: str(i) for i in range(0, 17, 2)},
+    step=0.5,
+    tooltip={"placement": "bottom", "always_visible": True}
+),
+dbc.Tooltip("Focus on specific module slices", target="module-slider", placement="bottom"),
+
+# For opacity-slider
+dcc.Slider(
+    id='opacity-slider',
+    min=0,
+    max=1,
+    value=0.3,
+    marks={i/10: f'{i/10:.1f}' for i in range(0, 11, 2)},
+    step=0.05,
+    tooltip={"placement": "bottom", "always_visible": True}
+),
+dbc.Tooltip("Tune surface transparency", target="opacity-slider", placement="left"),
+
+# Remove the for-loop that appends tooltips to app.layout.children
+# Help modal callback
+def toggle_help(open_click, close_click, is_open):
+    if open_click or close_click:
+        return not is_open
+    return is_open
+app.callback(
+    Output("help-modal","is_open"),
+    [Input("help-open","n_clicks"), Input("help-close","n_clicks")],
+    [State("help-modal","is_open")]
+)(toggle_help)
+
+# Update temp-trends-graph callback to add annotation and improve legend
 @app.callback(
     Output('temp-trends-graph', 'figure'),
     [Input('time-slider', 'value'),
@@ -811,7 +876,6 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
 )
 def update_temp_trends(current_time, view_mode):
     fig = go.Figure()
-
     if view_mode == 'raw':
         df = temp_stats_df
         fig.add_trace(go.Scatter(
@@ -827,13 +891,18 @@ def update_temp_trends(current_time, view_mode):
             line=dict(color='green', width=2)
         ))
         y_title = 'Temperature (°C)'
+        # Add annotation for peak temp
+        fig.add_annotation(
+          x=peak_time, y=peak_val,
+          text="Peak Temp",
+          showarrow=True, arrowhead=2, ax=0, ay=-40
+        )
     else:
         smoothed = temp_stats_df[['min_temp', 'avg_temp', 'max_temp']].apply(
             lambda col: savgol_filter(col, window_length=5000, polyorder=2, mode='interp')
         )
         deriv = smoothed.diff().fillna(0)
         deriv['timestamp'] = temp_stats_df['timestamp']
-
         fig.add_trace(go.Scatter(
             x=deriv['timestamp'], y=deriv['max_temp'], mode='lines', name='Max Temp Derivative',
             line=dict(color='red', width=2)
@@ -847,23 +916,27 @@ def update_temp_trends(current_time, view_mode):
             line=dict(color='green', width=2)
         ))
         y_title = 'Temperature Derivative (°C/s)'
-
     fig.add_vline(
         x=current_time,
         line_dash="dash",
         line_color="orange",
         annotation_text=f"Current Time: {current_time}"
     )
-
     fig.update_layout(
-        title='Temperature Trends Over Time',
-        xaxis_title='Time Index',
-        yaxis_title=y_title,
-        legend=dict(x=0, y=1),
-        margin=dict(l=0, r=0, b=0, t=40),
-        height=400
+      title='Temperature Trends Over Time',
+      xaxis_title='Time Index',
+      yaxis_title=y_title,
+      legend=dict(
+        orientation='h',
+        yanchor='bottom',
+        y=1.15,         # push it above the plot
+        xanchor='center',
+        x=0.5,
+        font=dict(size=10)
+      ),
+      margin=dict(l=40, r=40, b=40, t=80),
+      height=400
     )
-
     return fig
 
 
