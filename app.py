@@ -12,6 +12,7 @@ from dash import State
 from dash import callback_context
 import dash_bootstrap_components as dbc
 import trimesh
+import time
 
 # Initialize the Dash app with enhanced styling
 app = dash.Dash(__name__, external_stylesheets=[
@@ -69,8 +70,8 @@ x = []
 y = []
 z = []
 module_numbers = []
-#x_convert = [2.5, 5.0, 7.5, 10.0, 12.5, 15.0]  # 6 modules spread across 0-15 range
-x_convert = [1,3,15,12,6,0]
+x_convert = [2.5, 5.0, 7.5, 10.0, 12.5, 15.0]  # 6 modules spread across 0-15 range
+#x_convert = [1,3,15,12,6,0]
 
 
 for idx, col_name in enumerate(temp_columns):
@@ -915,6 +916,8 @@ def update_3d_graph(time_index, z_max, module_range, opacity, toggle_casing):
                         showscale=False,
                         line=dict(width=2, color='black')  # Add border to markers
                     ),
+                     text=[f"{t:.1f} °C" for t in temps],  # Tooltip text
+                    hoverinfo='text',  # Only show the temperature
                     showlegend=False,
                     name=f'Sensors {x_pos}'
                 ))
@@ -979,7 +982,7 @@ def update_temp_trends(current_time, view_mode):
         y_title = 'Temperature (°C)'
     else:
         smoothed = temp_stats_df[['min_temp', 'avg_temp', 'max_temp']].apply(
-            lambda col: savgol_filter(col, window_length=5000, polyorder=2, mode='interp')
+            lambda col: savgol_filter(col, window_length=50, polyorder=2, mode='interp')
         )
         deriv = smoothed.diff().fillna(0)
         deriv['timestamp'] = temp_stats_df['timestamp']
@@ -1035,7 +1038,7 @@ def update_power_graph(current_time, power_view_mode):
         y = data[power_col]
         if power_view_mode == 'smoothed':
             # Use Savitzky-Golay filter for smoothing
-            window = min(501, len(y) if len(y) % 2 == 1 else len(y)-1)
+            window = min(51, len(y) if len(y) % 2 == 1 else len(y)-1)
             if window < 5:
                 window = 5
             if window % 2 == 0:
@@ -1170,7 +1173,7 @@ def handle_play_pause_or_advance(n_intervals, n_clicks, current_value, is_disabl
             return current_value, True, [html.I(className="fas fa-play", style={'marginRight': '8px'}), 'Play']
 
     elif triggered_id == 'interval-component' and not is_disabled:
-        # Advance slider
+        # Wait 2 seconds before advancing
         next_value = current_value + 20
         if next_value >= num_timestamps:
             return num_timestamps - 20, True, [html.I(className="fas fa-play", style={'marginRight': '8px'}), 'Play']  # Pause at end
