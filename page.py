@@ -397,7 +397,7 @@ def get_html_layout(num_timestamps, z):
                                                                     "marginRight": "8px"
                                                                 },
                                                             ),
-                                                            "Step 1: Play the Animation",
+                                                            "Step 1: Move through  time using the timeline",
                                                         ],
                                                         style={
                                                             "color": "#1976d2",
@@ -405,8 +405,8 @@ def get_html_layout(num_timestamps, z):
                                                         },
                                                     ),
                                                     html.P(
-                                                        "Click the Play button to watch how battery temperatures evolve over time. "
-                                                        "The animation will automatically advance through the timeline, showing real-time thermal changes.",
+                                                        "Use the timeline to navigate through time and see the battery temperature at different moments."
+"The animation will automatically play, advancing through the timeline to show how the temperature evolves over time.",
                                                         style={"marginBottom": "10px"},
                                                     ),
                                                     html.P(
